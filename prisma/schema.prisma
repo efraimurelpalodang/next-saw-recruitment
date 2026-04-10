@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+}
+
+model Peran {
+  id        String   @id @default(cuid())
+  namaPeran String   @unique @map("nama_peran")
+  pengguna  Pengguna[]
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("peran")
+}
+
+model Pengguna {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  nama      String
+  
+  peranId   String   @map("peran_id")
+  peran     Peran    @relation(fields: [peranId], references: [id])
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("pengguna")
+}
+
+model JenisPekerjaan {
+  id        String   @id @default(cuid())
+  kode      String   @unique
+  nama      String
+  deskripsi String?
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("jenis_pekerjaan")
+}
+
+model BobotKriteria {
+  id        String   @id @default(cuid())
+  kode      String   @unique
+  nama      String
+  bobot     Float
+  
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("bobot_kriteria")
+}
