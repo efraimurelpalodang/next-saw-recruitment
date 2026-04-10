@@ -3,55 +3,233 @@ generator client {
 }
 
 datasource db {
-  provider  = "postgresql"
+  provider = "postgresql"
+}
+
+enum JenisKelamin {
+  L
+  P
+}
+
+enum StatusLowongan {
+  aktif
+  tutup
+  selesai
+}
+
+enum StatusLamaran {
+  pending
+  screening
+  tes_skill
+  wawancara
+  rekomendasi
+  keputusan
+}
+
+enum KeputusanHRD {
+  diterima
+  ditolak
+  cadangan
+}
+
+enum PendidikanTerakhir {
+  SMA
+  SMK
+  D3
+  S1
+  S2
+  S3
 }
 
 model Peran {
-  id        String   @id @default(cuid())
-  namaPeran String   @unique @map("nama_peran")
-  pengguna  Pengguna[]
+  id_peran        String     @id @default(cuid())
+  nama_peran      String     @unique
+  deskripsi       String?
+  pengguna        Pengguna[]
   
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  dibuat_pada     DateTime   @default(now())
+  diperbarui_pada DateTime   @updatedAt
 
   @@map("peran")
 }
 
 model Pengguna {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  password  String
-  nama      String
+  id_pengguna     String   @id @default(cuid())
+  email           String   @unique
+  kata_sandi      String
+  nama_lengkap    String
+  nomor_telepon   String?
+  status_aktif    Boolean  @default(true)
   
-  peranId   String   @map("peran_id")
-  peran     Peran    @relation(fields: [peranId], references: [id])
+  id_peran        String
+  peran           Peran    @relation(fields: [id_peran], references: [id_peran])
   
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  profil          ProfilPelamar?
+  lowongan        Lowongan[]
+  lamaran         Lamaran[]
+  penilaian       Penilaian[]
+  logAktivitas    LogAktivitas[]
+  
+  dibuat_pada     DateTime @default(now())
+  diperbarui_pada DateTime @updatedAt
 
   @@map("pengguna")
 }
 
-model JenisPekerjaan {
-  id        String   @id @default(cuid())
-  kode      String   @unique
-  nama      String
-  deskripsi String?
+model ProfilPelamar {
+  id_profil              String   @id @default(cuid())
   
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id_pengguna            String   @unique
+  pengguna               Pengguna @relation(fields: [id_pengguna], references: [id_pengguna])
+  
+  nik                    String   @unique
+  tempat_lahir           String
+  tanggal_lahir          DateTime
+  jenis_kelamin          JenisKelamin
+  alamat                 String
+  
+  pendidikan_terakhir    PendidikanTerakhir
+  jurusan                String
+  nama_institusi         String
+  tahun_lulus            Int
+  berkas_ijazah          String
+  
+  pengalaman_kerja_tahun Int     @default(0)
+  pengalaman_bidang      String?
+  berkas_cv              String
+  berkas_sertifikat      String?
+  
+  dibuat_pada            DateTime @default(now())
+  diperbarui_pada        DateTime @updatedAt
+
+  @@map("profil_pelamar")
+}
+
+model JenisPekerjaan {
+  id_jenis_pekerjaan String     @id @default(cuid())
+  kode_jenis         String     @unique
+  nama_jenis         String
+  deskripsi_umum     String?
+  status_aktif       Boolean    @default(true)
+  
+  lowongan           Lowongan[]
+  
+  dibuat_pada        DateTime   @default(now())
+  diperbarui_pada    DateTime   @updatedAt
 
   @@map("jenis_pekerjaan")
 }
 
 model BobotKriteria {
-  id        String   @id @default(cuid())
-  kode      String   @unique
-  nama      String
-  bobot     Float
+  id_bobot         String   @id @default(cuid())
+  kode_kriteria    String   @unique
+  nama_kriteria    String
+  bobot            Float
+  keterangan       String?
   
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  dibuat_pada      DateTime @default(now())
+  diperbarui_pada  DateTime @updatedAt
 
   @@map("bobot_kriteria")
+}
+
+model Lowongan {
+  id_lowongan        String   @id @default(cuid())
+  
+  id_pengguna        String
+  pengguna           Pengguna @relation(fields: [id_pengguna], references: [id_pengguna])
+  
+  id_jenis_pekerjaan String
+  jenis_pekerjaan    JenisPekerjaan @relation(fields: [id_jenis_pekerjaan], references: [id_jenis_pekerjaan])
+  
+  deskripsi          String
+  persyaratan        String
+  lokasi_kerja       String
+  tanggal_buka       DateTime
+  tanggal_tutup      DateTime
+  
+  status             StatusLowongan @default(aktif)
+  status_aktif       Boolean  @default(true)
+  
+  lamaran            Lamaran[]
+  
+  dibuat_pada        DateTime @default(now())
+  diperbarui_pada    DateTime @updatedAt
+
+  @@map("lowongan")
+}
+
+model Lamaran {
+  id_lamaran         String   @id @default(cuid())
+  
+  id_lowongan        String
+  lowongan           Lowongan @relation(fields: [id_lowongan], references: [id_lowongan])
+  
+  id_pengguna        String
+  pengguna           Pengguna @relation(fields: [id_pengguna], references: [id_pengguna])
+  
+  tanggal_lamar      DateTime @default(now())
+  status             StatusLamaran @default(pending)
+  
+  keputusan_hrd      KeputusanHRD?
+  catatan_hrd        String?
+  tanggal_keputusan  DateTime?
+  
+  penilaian          Penilaian?
+  
+  dibuat_pada        DateTime @default(now())
+  diperbarui_pada    DateTime @updatedAt
+
+  @@unique([id_lowongan, id_pengguna])
+  @@index([id_lowongan])
+  @@index([id_pengguna])
+  
+  @@map("lamaran")
+}
+
+model Penilaian {
+  id_penilaian               String   @id @default(cuid())
+  
+  id_lamaran                 String   @unique
+  lamaran                    Lamaran  @relation(fields: [id_lamaran], references: [id_lamaran])
+  
+  nilai_c1_pendidikan        Float
+  nilai_c2_pengalaman        Float
+  nilai_c3_sertifikasi       Float
+  nilai_c4_tes_keterampilan  Float
+  nilai_c5_wawancara         Float
+
+  normalisasi_c1             Float?
+  normalisasi_c2             Float?
+  normalisasi_c3             Float?
+  normalisasi_c4             Float?
+  normalisasi_c5             Float?
+  
+  nilai_preferensi           Float?
+  peringkat                  Int?
+  
+  id_pengguna                String
+  pengguna                   Pengguna @relation(fields: [id_pengguna], references: [id_pengguna])
+  
+  tanggal_penilaian          DateTime @default(now())
+  rekomendasi_sistem         Boolean  @default(true)
+  
+  dibuat_pada                DateTime @default(now())
+  diperbarui_pada            DateTime @updatedAt
+
+  @@map("penilaian")
+}
+
+model LogAktivitas {
+  id_log           String    @id @default(cuid())
+  
+  id_pengguna      String?
+  pengguna         Pengguna? @relation(fields: [id_pengguna], references: [id_pengguna])
+  
+  tipe_aktivitas   String
+  deskripsi        String
+  alamat_ip        String?
+  waktu            DateTime  @default(now())
+
+  @@map("log_aktivitas")
 }

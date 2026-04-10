@@ -12,35 +12,41 @@ async function main() {
   console.log("Seeding database...");
 
   // Seed Peran
-  const peranHrd = await defaultPrisma.peran.upsert({
-    where: { namaPeran: "hrd" },
+  await defaultPrisma.peran.upsert({
+    where: { nama_peran: "hrd" },
     update: {},
-    create: { namaPeran: "hrd" },
+    create: { nama_peran: "hrd", deskripsi: "Human Resources Department" },
   });
 
-  const peranPelamar = await defaultPrisma.peran.upsert({
-    where: { namaPeran: "pelamar" },
+  await defaultPrisma.peran.upsert({
+    where: { nama_peran: "pelamar" },
     update: {},
-    create: { namaPeran: "pelamar" },
+    create: { nama_peran: "pelamar", deskripsi: "Pencari Kerja" },
   });
 
-  const peranManager = await defaultPrisma.peran.upsert({
-    where: { namaPeran: "manager" },
+  await defaultPrisma.peran.upsert({
+    where: { nama_peran: "manajer" },
     update: {},
-    create: { namaPeran: "manager" },
+    create: { nama_peran: "manajer", deskripsi: "Manajer Perusahaan" },
+  });
+  
+  await defaultPrisma.peran.upsert({
+    where: { nama_peran: "admin" },
+    update: {},
+    create: { nama_peran: "admin", deskripsi: "Administrator Sistem" },
   });
 
   // Seed JenisPekerjaan
   const jobs = [
-    { kode: "QC", nama: "Quality Control", deskripsi: "Staf QC" },
-    { kode: "DRV", nama: "Driver", deskripsi: "Sopir Perusahaan" },
-    { kode: "SLS", nama: "Sales", deskripsi: "Staf Pemasaran" },
-    { kode: "WH", nama: "Staff Gudang", deskripsi: "Staf Gudang / Warehouse" },
+    { kode_jenis: "QC", nama_jenis: "Quality Control", deskripsi_umum: "Staf QC" },
+    { kode_jenis: "DRIVER", nama_jenis: "Driver", deskripsi_umum: "Sopir Perusahaan" },
+    { kode_jenis: "SALES", nama_jenis: "Sales", deskripsi_umum: "Staf Pemasaran" },
+    { kode_jenis: "WAREHOUSE", nama_jenis: "Staff Gudang", deskripsi_umum: "Staf Gudang / Warehouse" },
   ];
 
   for (const job of jobs) {
     await defaultPrisma.jenisPekerjaan.upsert({
-      where: { kode: job.kode },
+      where: { kode_jenis: job.kode_jenis },
       update: {},
       create: job,
     });
@@ -48,16 +54,16 @@ async function main() {
 
   // Seed BobotKriteria
   const kriteria = [
-    { kode: "C1", nama: "Pendidikan", bobot: 0.20 },
-    { kode: "C2", nama: "Pengalaman Kerja", bobot: 0.25 },
-    { kode: "C3", nama: "Usia", bobot: 0.15 },
-    { kode: "C4", nama: "Hasil Tes/Wawancara", bobot: 0.25 },
-    { kode: "C5", nama: "Jarak Tempat Tinggal", bobot: 0.15 },
+    { kode_kriteria: "C1", nama_kriteria: "Pendidikan", bobot: 0.20, keterangan: "Bobot 20%" },
+    { kode_kriteria: "C2", nama_kriteria: "Pengalaman Kerja", bobot: 0.25, keterangan: "Bobot 25%" },
+    { kode_kriteria: "C3", nama_kriteria: "Sertifikasi", bobot: 0.15, keterangan: "Bobot 15%" },
+    { kode_kriteria: "C4", nama_kriteria: "Tes Keterampilan", bobot: 0.25, keterangan: "Bobot 25%" },
+    { kode_kriteria: "C5", nama_kriteria: "Wawancara", bobot: 0.15, keterangan: "Bobot 15%" },
   ];
 
   for (const kmt of kriteria) {
     await defaultPrisma.bobotKriteria.upsert({
-      where: { kode: kmt.kode },
+      where: { kode_kriteria: kmt.kode_kriteria },
       update: {},
       create: kmt,
     });
