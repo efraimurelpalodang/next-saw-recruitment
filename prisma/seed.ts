@@ -98,7 +98,7 @@ async function main() {
     });
 
     if (roleObj) {
-      await defaultPrisma.pengguna.upsert({
+      const user = await defaultPrisma.pengguna.upsert({
         where: { email: mu.email },
         update: {},
         create: {
@@ -108,6 +108,54 @@ async function main() {
           id_peran: roleObj.id_peran,
         },
       });
+
+      // Seed sample Lowongan for HRD
+      if (mu.role === "hrd") {
+        const qcType = await defaultPrisma.jenisPekerjaan.findUnique({ where: { kode_jenis: "QC" } });
+        const whType = await defaultPrisma.jenisPekerjaan.findUnique({ where: { kode_jenis: "WAREHOUSE" } });
+        const salesType = await defaultPrisma.jenisPekerjaan.findUnique({ where: { kode_jenis: "SALES" } });
+
+        if (qcType && whType && salesType) {
+          const sampleLowongan = [
+            {
+              id_jenis_pekerjaan: qcType.id_jenis_pekerjaan,
+              id_pengguna: user.id_pengguna,
+              deskripsi: "Mencari Staff Quality Control untuk memastikan standar keamanan pangan di pabrik.",
+              persyaratan: "Pendidikan min. S1 Teknologi Pangan, pengalaman 1-2 tahun.",
+              lokasi_kerja: "Bekasi, Jawa Barat",
+              tanggal_buka: new Date(),
+              tanggal_tutup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+              status: "aktif" as const,
+            },
+            {
+              id_jenis_pekerjaan: whType.id_jenis_pekerjaan,
+              id_pengguna: user.id_pengguna,
+              deskripsi: "Dibutuhkan Staff Gudang untuk manajemen stok bahan baku dan pengiriman.",
+              persyaratan: "Pendidikan min. SMA/SMK, detail-oriented, sehat jasmani.",
+              lokasi_kerja: "Tangerang, Banten",
+              tanggal_buka: new Date(),
+              tanggal_tutup: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+              status: "aktif" as const,
+            },
+            {
+              id_jenis_pekerjaan: salesType.id_jenis_pekerjaan,
+              id_pengguna: user.id_pengguna,
+              deskripsi: "Sales Executive untuk menangani klien B2B (pabrik makanan).",
+              persyaratan: "Pendidikan min. D3/S1, kemampuan negosiasi tinggi, memiliki kendaraan sendiri.",
+              lokasi_kerja: "Jakarta Selatan",
+              tanggal_buka: new Date(),
+              tanggal_tutup: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
+              status: "aktif" as const,
+            },
+          ];
+
+          for (const low of sampleLowongan) {
+            await defaultPrisma.lowongan.create({
+              data: low,
+            });
+          }
+        }
+      }
     }
   }
 
