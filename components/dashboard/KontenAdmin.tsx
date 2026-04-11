@@ -10,7 +10,7 @@ export default function KontenAdmin({ pengguna }: KontenAdminProps) {
   return (
     <div className="animate-in fade-in duration-500 space-y-6">
       {/* Welcome Widget */}
-      <section className="bg-white rounded-[7px] p-6 border border-[#e5eaef] shadow-sm flex items-center justify-between">
+      <section className="bg-white rounded-[7px] p-6 border border-[#f5f2f2] shadow-xs flex items-center justify-between">
         <div className="space-y-1">
           <h2 className="text-xl font-bold text-[#2a3547]">Dashboard Overview</h2>
           <p className="text-[#5a6a85] text-sm">
@@ -35,7 +35,7 @@ export default function KontenAdmin({ pengguna }: KontenAdminProps) {
       {/* Main Grid Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Table Section */}
-        <div className="lg:col-span-2 bg-white rounded-[7px] border border-[#e5eaef] shadow-sm p-6 overflow-hidden">
+        <div className="lg:col-span-2 bg-white rounded-[7px] border border-[#f5f2f2] shadow-xs p-6 overflow-hidden">
            <div className="flex items-center justify-between mb-6">
              <h3 className="font-bold text-[#2a3547]">Aktivitas Terkini</h3>
              <button className="text-xs font-bold text-[#fccf54] hover:underline flex items-center gap-1 group">

@@ -56,12 +56,12 @@ export default function Sidebar({ user }: SidebarProps) {
   const navItems = getMenuData();
 
   return (
-    <aside className="hidden lg:flex flex-col w-[270px] bg-white border-r border-[#e5eaef] h-screen sticky top-0 overflow-hidden shrink-0">
+    <aside className="hidden lg:flex flex-col w-[270px] bg-white border-r border-[#f5f2f2] h-screen sticky top-0 overflow-hidden shrink-0">
       {/* Brand Logo - Modernize Style */}
       <div className="px-6 py-8 flex items-center justify-between">
         <Link href="/dashboard" className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-[#fccf54] flex items-center justify-center font-bold text-gray-900 border border-[#fccf54]">
-              R
+           <div className="w-8 h-8 rounded-lg bg-[#fccf54] flex items-center justify-center font-bold text-gray-900 border border-[#fccf54] text-xs">
+              SAW
            </div>
            <span className="text-xl font-bold text-[#2a3547] leading-none">Recruitment.</span>
         </Link>
@@ -83,7 +83,7 @@ export default function Sidebar({ user }: SidebarProps) {
                   className={`flex items-center gap-3 px-4 py-2.5 rounded-md transition-all duration-300 group ${
                     isActive 
                       ? "bg-[#fccf54] text-[#2a3547] shadow-sm font-semibold" 
-                      : "text-[#5a6a85] hover:bg-[#f2f6fa] hover:text-[#5d87ff]" // Modernize hover is blue, but I'll use a neutral gray hover or light yellow tint if needed. Let's keep gray for now as template.
+                      : "text-[#5a6a85] hover:bg-[#f2f6fa] hover:text-[#fccf54]" // Modernize hover is blue, but I'll use a neutral gray hover or light yellow tint if needed. Let's keep gray for now as template.
                   }`}
                 >
                   <item.icon 

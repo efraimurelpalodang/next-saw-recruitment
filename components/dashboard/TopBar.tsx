@@ -10,7 +10,7 @@ interface TopBarProps {
 
 export default function TopBar({ user, title }: TopBarProps) {
   return (
-    <header className="h-[70px] bg-white border-b border-[#e5eaef] flex items-center justify-between px-6 sticky top-0 z-30 shadow-sm shadow-gray-100/50">
+    <header className="h-[70px] bg-white flex items-center justify-between px-6 sticky top-0 z-30 shadow-sm shadow-gray-100/50">
       {/* Menu Toggle & Title */}
       <div className="flex items-center gap-4">
         <button className="lg:hidden p-2 text-[#5a6a85] hover:bg-gray-50 rounded-lg transition-colors">

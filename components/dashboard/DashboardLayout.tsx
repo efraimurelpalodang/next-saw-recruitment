@@ -10,7 +10,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children, user, title }: DashboardLayoutProps) {
   return (
-    <div className="flex min-h-screen bg-[#f2f6fa] font-plus overflow-hidden">
+    <div className="flex min-h-screen bg-[#fff] font-plus overflow-hidden">
       {/* Sidebar - Strict Modernize Width (270px) */}
       <Sidebar user={user} />
 
@@ -24,10 +24,6 @@ export default function DashboardLayout({ children, user, title }: DashboardLayo
           <div className="max-w-[1600px] mx-auto space-y-6">
             {children}
           </div>
-          
-          <footer className="mt-12 text-center text-sm text-gray-400 font-medium pb-8">
-            &copy; {new Date().getFullYear()} Recruitment SAW. Integrated with Modernize Style.
-          </footer>
         </main>
       </div>
     </div>
