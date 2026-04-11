@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
@@ -67,6 +68,47 @@ async function main() {
       update: {},
       create: kmt,
     });
+  }
+
+  // Seed Default Management Users
+  console.log("Seeding default users...");
+  const hashedPassword = await bcrypt.hash("password123", 10);
+
+  const managementUsers = [
+    {
+      email: "admin@saw.com",
+      nama_lengkap: "Super Admin",
+      role: "admin",
+    },
+    {
+      email: "hrd@saw.com",
+      nama_lengkap: "HRD Recruitment",
+      role: "hrd",
+    },
+    {
+      email: "manager@saw.com",
+      nama_lengkap: "Manager Recruitment",
+      role: "manajer",
+    },
+  ];
+
+  for (const mu of managementUsers) {
+    const roleObj = await defaultPrisma.peran.findUnique({
+      where: { nama_peran: mu.role },
+    });
+
+    if (roleObj) {
+      await defaultPrisma.pengguna.upsert({
+        where: { email: mu.email },
+        update: {},
+        create: {
+          email: mu.email,
+          kata_sandi: hashedPassword,
+          nama_lengkap: mu.nama_lengkap,
+          id_peran: roleObj.id_peran,
+        },
+      });
+    }
   }
 
   console.log("Database seeded successfully!");

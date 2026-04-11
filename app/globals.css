@@ -8,19 +8,22 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-plus: var(--font-plus-jakarta);
+  --font-sans: var(--font-plus-jakarta);
+  --color-primary-yellow: #fccf54;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #f2f6fa;
+    --foreground: #2a3547;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #f2f6fa;
+  color: #2a3547;
+  font-family: var(--font-plus-jakarta), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }

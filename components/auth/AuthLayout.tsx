@@ -19,7 +19,7 @@ export default function AuthLayout({
   return (
     <div className="h-screen w-full flex overflow-hidden bg-white font-sans">
       <div className="flex-1 flex flex-col md:flex-row h-full">
-        
+
         {/* Left Side: Form */}
         <div className="w-full md:w-3/5 h-full flex flex-col justify-center bg-white px-8 md:px-16 lg:px-24">
           <div className="max-w-sm w-full mx-auto py-8">
@@ -55,7 +55,7 @@ export default function AuthLayout({
               />
             </div>
             <div className="absolute inset-0 bg-gradient-to-t from-gray-900/40 via-transparent to-transparent z-10" />
-            
+
             <div className="absolute bottom-6 left-6 right-6 z-20 text-white drop-shadow-md">
               <h2 className="text-xl font-bold mb-2 leading-tight text-white">
                 Rekrutmen Pintar untuk Masa Depan.
@@ -76,15 +76,15 @@ export default function AuthLayout({
 
             {/* Decorative floating card */}
             <div className="hidden lg:block absolute top-6 left-6 z-20 bg-white/10 backdrop-blur-lg border border-white/20 p-4 rounded-[1.5rem] shadow-xl">
-               <div className="flex items-center gap-2">
-                 <div className="w-8 h-8 bg-[#fccf54] rounded-full flex items-center justify-center text-gray-900">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
-                 </div>
-                 <div>
-                   <p className="text-white font-semibold text-xs leading-tight">Keputusan Terukur</p>
-                   <p className="text-white/60 text-[10px] font-medium uppercase tracking-wider">Metode SAW Murni</p>
-                 </div>
-               </div>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-[#fccf54] rounded-full flex items-center justify-center text-gray-900">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
+                </div>
+                <div>
+                  <p className="text-white font-semibold text-xs leading-tight">Keputusan Terukur</p>
+                  <p className="text-white/60 text-[10px] font-medium uppercase tracking-wider">Metode SAW Murni</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
