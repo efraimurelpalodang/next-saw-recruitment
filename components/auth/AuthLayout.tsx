@@ -21,7 +21,7 @@ export default function AuthLayout({
       <div className="flex-1 flex flex-col md:flex-row h-full">
 
         {/* Left Side: Form */}
-        <div className="w-full md:w-3/5 h-full flex flex-col justify-center bg-white px-8 md:px-16 lg:px-24">
+        <div className="w-full md:w-1/2 h-full flex flex-col justify-center bg-white px-8 md:px-16 lg:px-24">
           <div className="max-w-sm w-full mx-auto py-8">
             {/* Logo placeholder if needed */}
             <div className="mb-6 flex items-center gap-2">
@@ -43,7 +43,7 @@ export default function AuthLayout({
         </div>
 
         {/* Right Side: Visual */}
-        <div className="hidden md:flex md:w-2/5 h-full p-4 relative">
+        <div className="hidden md:flex md:w-1/2 h-full p-4 relative">
           <div className="w-full h-full relative bg-[#f5f0d3] overflow-hidden rounded-[2rem] shadow-inner">
             <div className="absolute inset-0 z-0 scale-105 hover:scale-100 transition-transform duration-1000">
               <Image
