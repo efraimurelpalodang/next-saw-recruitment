@@ -28,7 +28,26 @@ export default async function DashboardPage() {
 
   // Pelamar dashboard remains simple as requested
   if (roleAuth === "pelamar") {
-    return <KontenPelamar pengguna={pengguna} />;
+    const dataPelamar = await prisma.pengguna.findUnique({
+      where: { id_pengguna: session.id_pengguna },
+      include: { 
+        profil: true,
+        lamaran: {
+          include: {
+            lowongan: {
+              include: {
+                jenis_pekerjaan: true
+              }
+            },
+            penilaian: true
+          },
+          orderBy: {
+            tanggal_lamar: 'desc'
+          }
+        }
+      },
+    });
+    return <KontenPelamar pengguna={dataPelamar} />;
   }
 
   // Management dashboards use the new Adon-inspired Layout

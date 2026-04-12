@@ -1,39 +1,66 @@
 import React from 'react';
-import LogoutButton from '@/components/ui/LogoutButton';
+import WelcomeHeader from './pelamar/WelcomeHeader';
+import ProfileStatus from './pelamar/ProfileStatus';
+import ApplicationList from './pelamar/ApplicationList';
+import { UserCircle, FileCheck, Search } from 'lucide-react';
+import Link from 'next/link';
 
 export default function KontenPelamar({ pengguna }: { pengguna: any }) {
   return (
-    <div className="p-8 max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Dashboard Pelamar</h1>
-          <p className="text-gray-500 mt-1">Portal Karir</p>
+    <div className="min-h-screen bg-gray-50/50 pb-20">
+      <div className="p-4 md:p-8 max-w-6xl mx-auto pt-10">
+        <WelcomeHeader nama={pengguna.nama_lengkap} />
+        
+        <ProfileStatus profil={pengguna.profil} />
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+          {/* Quick Actions */}
+          <div className="lg:col-span-1 space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-4 px-2">Aksi Cepat</h3>
+            
+            <Link 
+              href="/dashboard/profil"
+              className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-[#fccf54] hover:shadow-md transition-all group"
+            >
+              <div className="w-12 h-12 bg-orange-50 rounded-xl flex items-center justify-center text-orange-500 group-hover:bg-[#fccf54] group-hover:text-gray-900 transition-colors">
+                <UserCircle size={26} />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">Edit Profil</p>
+                <p className="text-xs text-gray-500 mt-0.5">Biodata & Pendidikan</p>
+              </div>
+            </Link>
+
+            <Link 
+              href="/"
+              className="flex items-center gap-4 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm hover:border-[#fccf54] hover:shadow-md transition-all group"
+            >
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-500 group-hover:bg-[#fccf54] group-hover:text-gray-900 transition-colors">
+                <Search size={26} />
+              </div>
+              <div>
+                <p className="font-bold text-gray-900">Cari Pekerjaan</p>
+                <p className="text-xs text-gray-500 mt-0.5">Eksplorasi Lowongan</p>
+              </div>
+            </Link>
+
+            <div className="p-6 bg-[#fccf54] rounded-2xl shadow-xl shadow-[#fccf54]/20 relative overflow-hidden group">
+              <div className="relative z-10">
+                <p className="text-gray-900 font-bold text-lg mb-1">Butuh Bantuan?</p>
+                <p className="text-gray-800 text-sm mb-4 opacity-80">Hubungi tim rekrutmen kami jika ada kendala.</p>
+                <button className="px-5 py-2 bg-white text-gray-900 rounded-lg text-xs font-bold hover:shadow-lg transition-all">
+                  Hubungi Kami
+                </button>
+              </div>
+              <FileCheck size={120} className="absolute -bottom-6 -right-6 text-gray-900/5 rotate-12 group-hover:scale-110 transition-transform" />
+            </div>
+          </div>
+
+          {/* Application Tracking */}
+          <div className="lg:col-span-2">
+            <ApplicationList lamaran={pengguna.lamaran || []} />
+          </div>
         </div>
-        <LogoutButton />
-      </div>
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 mb-6">
-        <h2 className="text-xl font-semibold mb-4 text-gray-800">Hi, {pengguna.nama_lengkap}!</h2>
-        <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-          <p className="text-blue-700">Pastikan profil Anda sudah diisi dengan lengkap sebelum mengajukan lamaran pekerjaan.</p>
-        </div>
-        <p className="text-gray-600">Status kelengkapan profil Anda dapat diperbarui secara mandiri.</p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <button className="p-6 bg-orange-50 border border-orange-100 rounded-xl hover:bg-orange-100 transition text-left group">
-          <h3 className="font-semibold text-orange-900 text-lg mb-2 group-hover:text-orange-700">Lengkapi Profil &rarr;</h3>
-          <p className="text-orange-700 text-sm">Isi biodata, pendidikan, dan pengalaman Anda.</p>
-        </button>
-
-        <button className="p-6 bg-blue-50 border border-blue-100 rounded-xl hover:bg-blue-100 transition text-left group">
-          <h3 className="font-semibold text-blue-900 text-lg mb-2 group-hover:text-blue-700">Eksplorasi Lowongan &rarr;</h3>
-          <p className="text-blue-700 text-sm">Cari loker terbuka dan daftar sekarang.</p>
-        </button>
-
-        <button className="p-6 bg-purple-50 border border-purple-100 rounded-xl hover:bg-purple-100 transition text-left group">
-          <h3 className="font-semibold text-purple-900 text-lg mb-2 group-hover:text-purple-700">Status Lamaran &rarr;</h3>
-          <p className="text-purple-700 text-sm">Cek status seleksi Anda apakah diterima atau ditolak.</p>
-        </button>
       </div>
     </div>
   );
