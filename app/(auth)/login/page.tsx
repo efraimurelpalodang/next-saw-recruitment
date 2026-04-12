@@ -114,7 +114,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full h-12 bg-[#fccf54] hover:bg-[#efc03f] active:scale-95 text-gray-900 rounded-full shadow-lg shadow-[#fccf54]/10 transition-all font-bold text-base flex items-center justify-center gap-2 disabled:opacity-70 disabled:grayscale disabled:transform-none"
+            className="w-full h-12 bg-[#fccf54] hover:bg-[#efc03f] active:scale-95 text-gray-900 rounded-full shadow-lg shadow-[#fccf54]/10 transition-all font-bold text-base flex items-center justify-center gap-2 disabled:opacity-70 disabled:grayscale disabled:transform-none hover:cursor-pointer"
           >
             {isSubmitting ? (
               <Loader2 className="animate-spin" size={20} strokeWidth={2.5} />

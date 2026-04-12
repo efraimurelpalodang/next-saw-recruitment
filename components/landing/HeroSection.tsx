@@ -37,12 +37,12 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-wrap items-center gap-6 mt-4">
-            <button className="h-14 px-10 bg-[#fccf54] hover:bg-[#efc03f] text-gray-900 rounded-full font-bold text-lg transition-all active:scale-95 shadow-xl shadow-[#fccf54]/20 flex items-center gap-3">
+            <button className="h-14 px-10 bg-[#fccf54] hover:bg-[#efc03f] text-gray-900 rounded-full font-bold text-lg transition-all active:scale-95 shadow-xl shadow-[#fccf54]/20 flex items-center gap-3 hover:cursor-pointer">
               Lihat Katalog Produk <ArrowRight size={20} />
             </button>
 
             <button className="flex items-center gap-4 group">
-              <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white group-hover:bg-[#fccf54] group-hover:text-gray-900 transition-all">
+              <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center text-white group-hover:bg-[#fccf54] group-hover:text-gray-900 transition-all hover:cursor-pointer">
                 <Play size={20} fill="currentColor" />
               </div>
               <span className="text-white font-bold text-sm tracking-wide">Video Company Profile</span>
@@ -50,17 +50,17 @@ const HeroSection = () => {
           </div>
 
           {/* Quick Stats Overlay (Mobile friendly view) */}
-          <div className="mt-8 grid grid-cols-3 gap-8 p-6 md:p-8 rounded-[32px] bg-black/10 backdrop-blur-md border border-white/10 group">
+          <div className="mt-1 grid grid-cols-3 gap-8 p-6 md:p-10 rounded-[32px]">
             <div className="flex flex-col">
-              <p className="text-3xl font-bold text-white group-hover:text-[#fccf54] transition-colors">500+</p>
+              <p className="text-3xl font-bold text-white transition-colors">500+</p>
               <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Klien Pabrik</p>
             </div>
             <div className="flex flex-col border-l border-white/10 pl-8">
-              <p className="text-3xl font-bold text-white group-hover:text-[#fccf54] transition-colors">100%</p>
+              <p className="text-3xl font-bold text-white transition-colors">100%</p>
               <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Food Grade</p>
             </div>
             <div className="flex flex-col border-l border-white/10 pl-8">
-              <p className="text-3xl font-bold text-white group-hover:text-[#fccf54] transition-colors">24h</p>
+              <p className="text-3xl font-bold text-white transition-colors">24h</p>
               <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold mt-1">Support Layanan</p>
             </div>
           </div>
