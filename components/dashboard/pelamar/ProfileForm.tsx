@@ -1,39 +1,60 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { profileSchema } from '@/lib/validations/profile';
 import { updateProfile } from '@/app/actions/profileActions';
 import { uploadDocument, deleteDocument } from '@/app/actions/fileActions';
+import { useRouter } from 'next/navigation';
+import { z } from 'zod';
 import { 
-  User, MapPin, GraduationCap, Briefcase, 
-  Save, Upload, Trash2, FileText, Loader2, CheckCircle2, Search
+  User, Loader2, Save, Edit2, Mail, FileText, Search, Trash2, Upload, CheckCircle2
 } from 'lucide-react';
 import { JenisKelamin, PendidikanTerakhir } from "@prisma/client";
 
+// Tambahkan nama_lengkap ke schema khusus untuk form ini agar tidak difilter oleh resolver Zod bawaan
+const extendedProfileSchema = profileSchema.extend({
+  nama_lengkap: z.string().min(2, "Nama tidak boleh kosong"),
+});
+
 interface ProfileFormProps {
-  initialData: any;
+  user: any;
   isLocked?: boolean;
 }
 
-const ProfileForm = ({ initialData, isLocked }: ProfileFormProps) => {
+const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
+  const router = useRouter();
+  const initialData = user?.profil;
+  
+  const [editState, setEditState] = useState({
+    profile: false,
+    personal: false,
+    qual: false,
+  });
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploading, setUploading] = useState<{ [key: string]: boolean }>({});
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [toast, setToast] = useState<{show: boolean, msg: string}>({show: false, msg: ''});
+
+  const showToast = (msg: string) => {
+    setToast({show: true, msg});
+    setTimeout(() => setToast({show: false, msg: ''}), 3000);
+  }
 
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
+    reset,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(profileSchema),
+    resolver: zodResolver(extendedProfileSchema),
     defaultValues: initialData ? {
       ...initialData,
       tanggal_lahir: initialData.tanggal_lahir ? new Date(initialData.tanggal_lahir).toISOString().split('T')[0] : '',
+      nama_lengkap: user?.nama_lengkap || '',
     } : {
+      nama_lengkap: user?.nama_lengkap || '',
       nik: '',
       tempat_lahir: '',
       tanggal_lahir: '',
@@ -50,9 +71,7 @@ const ProfileForm = ({ initialData, isLocked }: ProfileFormProps) => {
 
   const onSubmit = async (data: any) => {
     setIsSubmitting(true);
-    setMessage(null);
     
-    // Add file URLs from initialData if not changed
     const finalData = {
       ...data,
       berkas_ijazah: initialData?.berkas_ijazah || "",
@@ -63,26 +82,38 @@ const ProfileForm = ({ initialData, isLocked }: ProfileFormProps) => {
     const result = await updateProfile(finalData);
     
     if (result.success) {
-      setMessage({ type: 'success', text: 'Profil berhasil diperbarui!' });
+      showToast("Data profil Anda berhasil disimpan.");
+      // Tutup semua form edit
+      setEditState({ profile: false, personal: false, qual: false });
+      // Lakukan refresh data secara mulus tanpa memuat ulang seluruh halaman
+      router.refresh();
     } else {
-      setMessage({ type: 'error', text: result.error || 'Gagal memperbarui profil' });
+      alert(result.error || "Gagal menyimpan data.");
     }
     
     setIsSubmitting(false);
-    // Scroll to top to see message
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const onInvalid = (formErrors: any) => {
+    alert("Gagal menyimpan. Terdapat data wajib pada formulir yang belum lengkapi.");
+    // Buka section yang berisi error 
+    setEditState(prev => {
+      const next = { ...prev };
+      if (formErrors.nik || formErrors.tempat_lahir || formErrors.tanggal_lahir || formErrors.jenis_kelamin || formErrors.alamat) next.personal = true;
+      if (formErrors.pendidikan_terakhir || formErrors.nama_institusi || formErrors.jurusan || formErrors.tahun_lulus || formErrors.pengalaman_bidang || formErrors.pengalaman_kerja_tahun) next.qual = true;
+      if (formErrors.nama_lengkap) next.profile = true;
+      return next;
+    });
+  };
+
+  const cancelEdit = (section: keyof typeof editState) => {
+    reset(); // Kembalikan ke original
+    setEditState(prev => ({ ...prev, [section]: false }));
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'ijazah' | 'cv' | 'sertifikat') => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    // ATURAN VALIDASI CLIENT-SIDE
-    const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'];
-    if (!allowedTypes.includes(file.type)) {
-      alert("Format file tidak diizinkan. Hanya PDF, JPG, atau PNG.");
-      return;
-    }
 
     if (file.size > 2 * 1024 * 1024) {
       alert("Ukuran file terlalu besar. Maksimal 2MB.");
@@ -91,303 +122,315 @@ const ProfileForm = ({ initialData, isLocked }: ProfileFormProps) => {
 
     setUploading(prev => ({ ...prev, [type]: true }));
     const result = await uploadDocument(file, type);
-    
     if (result.success) {
-      // In a real app, you might want to update local state or revalidate
-      alert(`${type.toUpperCase()} berhasil diunggah!`);
-      window.location.reload(); // Quick way to see changes
-    } else {
-      alert(result.error);
-    }
+      showToast(`${type.toUpperCase()} berhasil diunggah.`);
+      router.refresh();
+    } else alert(result.error || "Gagal mengunggah berkas.");
     setUploading(prev => ({ ...prev, [type]: false }));
   };
 
   const handleFileDelete = async (url: string, type: 'ijazah' | 'cv' | 'sertifikat') => {
-    if (!confirm(`Hapus berkas ${type.toUpperCase()}?`)) return;
-
+    if (!confirm(`Apakah Anda yakin ingin menghapus berkas ${type.toUpperCase()} ini?`)) return;
     setUploading(prev => ({ ...prev, [type]: true }));
     const result = await deleteDocument(url, type);
-    
     if (result.success) {
-      alert(`${type.toUpperCase()} berhasil dihapus!`);
-      window.location.reload();
-    } else {
-      alert(result.error);
-    }
+       router.refresh();
+       showToast(`${type.toUpperCase()} berhasil dihapus.`);
+    } else alert(result.error);
     setUploading(prev => ({ ...prev, [type]: false }));
   };
 
-  const inputClasses = "w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-[#fccf54] focus:ring-2 focus:ring-[#fccf54]/20 transition-all outline-none disabled:bg-gray-50 disabled:text-gray-400";
-  const labelClasses = "block text-sm font-bold text-gray-700 mb-1.5 ml-1";
-  const errorClasses = "text-xs text-red-500 mt-1 ml-1 font-medium";
+  const inputClasses = "w-full rounded-md border border-[#e2e8f0] bg-transparent py-2.5 px-4 text-sm outline-none transition focus:border-black disabled:bg-gray-50 disabled:text-gray-500";
+  const labelClasses = "block text-xs font-semibold text-gray-500 mb-1.5";
+  const valueClasses = "text-sm text-gray-900 border-b border-transparent py-2.5";
+  const errorClasses = "text-[10px] text-red-500 mt-1 font-semibold block";
+
+  const initials = user?.nama_lengkap?.split(' ').slice(0, 2).map((n: string) => n[0]).join('') || 'U';
+
+  // HELPER FUNCTION BUKAN COMPONENT (Mencegah React Unmount penyebab scroll lompat)
+  const renderCardContainer = (title: string, editKey: keyof typeof editState, children: React.ReactNode) => {
+    const isEdit = editState[editKey];
+
+    return (
+      <div className="bg-white rounded-xl border border-[#e2e8f0] p-6 md:p-8 shadow-sm transition-all duration-300">
+        <div className="flex items-center justify-between mb-8 border-b border-[#e2e8f0] pb-4">
+          <h3 className="text-lg font-bold text-gray-900">{title}</h3>
+          {!isLocked && (
+            isEdit ? (
+               <div className="flex items-center gap-2">
+                 <button 
+                  type="button" 
+                  onClick={() => cancelEdit(editKey)} 
+                  className="px-4 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+                  disabled={isSubmitting}
+                 >
+                   Batal
+                 </button>
+                 <button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="flex items-center gap-1.5 px-5 py-1.5 bg-[#fccf54] text-gray-900 rounded-full text-xs font-bold hover:bg-[#efc03f] transition-colors"
+                 >
+                   {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Simpan
+                 </button>
+               </div>
+            ) : (
+                <button 
+                  type="button" 
+                  onClick={() => setEditState(prev => ({ ...prev, [editKey]: true }))}
+                  className="flex items-center gap-1.5 px-4 py-1.5 border border-[#e2e8f0] text-gray-600 rounded-full text-xs hover:bg-gray-50 transition-colors"
+                >
+                  <Edit2 size={12} /> Ubah
+                </button>
+            )
+          )}
+        </div>
+        <div>
+          {children}
+        </div>
+      </div>
+    );
+  };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-      {message && (
-        <div className={`p-4 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4 ${
-          message.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'
-        }`}>
-          {message.type === 'success' ? <CheckCircle2 size={20} /> : <Loader2 size={20} />}
-          <p className="font-bold text-sm">{message.text}</p>
+    <>
+      {toast.show && (
+        <div className="fixed bottom-6 right-6 z-50 bg-gray-900 border border-gray-800 text-white px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5">
+           <div className="bg-[#10b981] text-white rounded-full w-6 h-6 flex items-center justify-center">
+             <CheckCircle2 size={16} />
+           </div>
+           <p className="font-bold text-sm tracking-wide">{toast.msg}</p>
         </div>
       )}
 
-      {isLocked && (
-        <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-center gap-3 mb-6">
-          <Loader2 className="animate-spin text-amber-500" size={20} />
-          <p className="text-sm font-bold text-amber-800">
-            Profil terkunci (Freeze) selama lamaran sedang aktif.
-          </p>
-        </div>
-      )}
+      <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-6 max-w-5xl mx-auto pb-12">
 
-      {/* Identitas Diri */}
-      <section className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-500">
-            <User size={20} />
+        {isLocked && (
+          <div className="bg-[#f59e0b]/10 p-4 rounded-xl flex items-start gap-3">
+            <Loader2 className="animate-spin text-[#f59e0b] flex-shrink-0 mt-0.5" size={20} />
+            <p className="text-sm text-[#f59e0b] font-medium">
+              Perubahan profil dinonaktifkan sementara karena terdapat lamaran Anda yang sedang diproses.
+            </p>
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Identitas Diri</h2>
-        </div>
+        )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="md:col-span-2">
-            <label className={labelClasses}>NIK (16 Digit)</label>
-            <input 
-              {...register('nik')} 
-              placeholder="Masukkan 16 digit NIK" 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.nik && <p className={errorClasses}>{errors.nik.message as string}</p>}
-          </div>
-
-          <div>
-            <label className={labelClasses}>Tempat Lahir</label>
-            <input 
-              {...register('tempat_lahir')} 
-              placeholder="Contoh: Jakarta" 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.tempat_lahir && <p className={errorClasses}>{errors.tempat_lahir.message as string}</p>}
-          </div>
-
-          <div>
-            <label className={labelClasses}>Tanggal Lahir</label>
-            <input 
-              type="date"
-              {...register('tanggal_lahir')} 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.tanggal_lahir && <p className={errorClasses}>{errors.tanggal_lahir.message as string}</p>}
-          </div>
-
-          <div>
-            <label className={labelClasses}>Jenis Kelamin</label>
-            <select 
-              {...register('jenis_kelamin')} 
-              className={inputClasses}
-              disabled={isLocked}
-            >
-              <option value="">Pilih Jenis Kelamin</option>
-              <option value={JenisKelamin.L}>Laki-laki</option>
-              <option value={JenisKelamin.P}>Perempuan</option>
-            </select>
-            {errors.jenis_kelamin && <p className={errorClasses}>{errors.jenis_kelamin.message as string}</p>}
-          </div>
-
-          <div className="md:col-span-2">
-            <label className={labelClasses}>Alamat Lengkap (Domisili)</label>
-            <textarea 
-              {...register('alamat')} 
-              rows={3}
-              placeholder="Masukkan alamat lengkap Anda" 
-              className={`${inputClasses} resize-none`}
-              disabled={isLocked}
-            />
-            {errors.alamat && <p className={errorClasses}>{errors.alamat.message as string}</p>}
-          </div>
-        </div>
-      </section>
-
-      {/* Pendidikan */}
-      <section className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center text-blue-500">
-            <GraduationCap size={20} />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">Riwayat Pendidikan</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className={labelClasses}>Jenjang Terakhir</label>
-            <select 
-              {...register('pendidikan_terakhir')} 
-              className={inputClasses}
-              disabled={isLocked}
-            >
-              <option value="">Pilih Jenjang</option>
-              {Object.values(PendidikanTerakhir).map((p) => (
-                <option key={p} value={p}>{p}</option>
-              ))}
-            </select>
-            {errors.pendidikan_terakhir && <p className={errorClasses}>{errors.pendidikan_terakhir.message as string}</p>}
-          </div>
-
-          <div>
-            <label className={labelClasses}>Jurusan</label>
-            <input 
-              {...register('jurusan')} 
-              placeholder="Contoh: Teknik Informatika" 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.jurusan && <p className={errorClasses}>{errors.jurusan.message as string}</p>}
-          </div>
-
-          <div className="md:col-span-2">
-            <label className={labelClasses}>Nama Institusi / Kampus / Sekolah</label>
-            <input 
-              {...register('nama_institusi')} 
-              placeholder="Nama lengkap sekolah atau universitas" 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.nama_institusi && <p className={errorClasses}>{errors.nama_institusi.message as string}</p>}
-          </div>
-
-          <div>
-            <label className={labelClasses}>Tahun Lulus</label>
-            <input 
-              type="number"
-              {...register('tahun_lulus', { valueAsNumber: true })} 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.tahun_lulus && <p className={errorClasses}>{errors.tahun_lulus.message as string}</p>}
-          </div>
-        </div>
-      </section>
-
-      {/* Pengalaman Kerja */}
-      <section className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-purple-50 rounded-lg flex items-center justify-center text-purple-500">
-            <Briefcase size={20} />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">Pengalaman Kerja</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label className={labelClasses}>Lama Pengalaman (Tahun)</label>
-            <input 
-              type="number"
-              {...register('pengalaman_kerja_tahun', { valueAsNumber: true })} 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.pengalaman_kerja_tahun && <p className={errorClasses}>{errors.pengalaman_kerja_tahun.message as string}</p>}
-          </div>
-
-          <div>
-            <label className={labelClasses}>Bidang Utama</label>
-            <input 
-              {...register('pengalaman_bidang')} 
-              placeholder="Contoh: Web Developer" 
-              className={inputClasses}
-              disabled={isLocked}
-            />
-            {errors.pengalaman_bidang && <p className={errorClasses}>{errors.pengalaman_bidang.message as string}</p>}
-          </div>
-        </div>
-      </section>
-
-      {/* Berkas / Dokumen */}
-      <section className="bg-white p-6 md:p-8 rounded-2xl border border-gray-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 bg-emerald-50 rounded-lg flex items-center justify-center text-emerald-500">
-            <FileText size={20} />
-          </div>
-          <h2 className="text-xl font-bold text-gray-900">Berkas Pendukung</h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[
-            { id: 'ijazah', label: 'Ijazah Terakhir', required: true, accept: 'application/pdf,image/*' },
-            { id: 'cv', label: 'Curriculum Vitae (CV)', required: true, accept: 'application/pdf' },
-            { id: 'sertifikat', label: 'Sertifikat (Opsional)', required: false, accept: 'application/pdf,image/*' },
-          ].map((doc) => {
-            const url = initialData?.[`berkas_${doc.id}`];
-            const isUploading = uploading[doc.id];
-
-            return (
-              <div key={doc.id} className="p-4 rounded-2xl bg-gray-50 border border-gray-100 flex flex-col items-center text-center">
-                <p className="text-xs font-bold text-gray-500 mb-3 uppercase tracking-wider">{doc.label}</p>
-                
-                {url ? (
-                  <div className="w-full">
-                    <div className="w-full aspect-[4/3] bg-white rounded-xl border border-gray-200 flex items-center justify-center p-3 mb-3 shadow-sm group relative">
-                      <FileText size={40} className="text-[#fccf54] opacity-50 transition-opacity group-hover:opacity-100" />
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center gap-3">
-                        <a href={url} target="_blank" className="p-2 bg-white rounded-lg text-gray-900 hover:scale-110 transition-transform">
-                          <Search size={18} />
-                        </a>
-                        {!isLocked && (
-                          <button 
-                            type="button" 
-                            onClick={() => handleFileDelete(url, doc.id as any)}
-                            className="p-2 bg-red-500 rounded-lg text-white hover:scale-110 transition-transform"
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <label className={`w-full aspect-[4/3] bg-white rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center p-3 mb-3 cursor-pointer hover:border-[#fccf54] hover:bg-white transition-all ${isLocked ? 'cursor-not-allowed opacity-50' : ''}`}>
-                    <input 
-                      type="file" 
-                      className="hidden" 
-                      accept={doc.accept}
-                      disabled={isLocked || isUploading}
-                      onChange={(e) => handleFileUpload(e, doc.id as any)}
-                    />
-                    {isUploading ? (
-                      <Loader2 className="animate-spin text-[#fccf54]" size={24} />
-                    ) : (
-                      <>
-                        <Upload size={24} className="text-gray-300 mb-2" />
-                        <span className="text-[10px] font-bold text-gray-400">PILIH FILE</span>
-                      </>
-                    )}
-                  </label>
-                )}
-                
-                <p className="text-[10px] text-gray-400 font-medium">PDF/JPG, Maks 2MB</p>
+        {/* CARD 1: PROFILE HEADER (Identity) */}
+        {renderCardContainer("Profil", "profile", (
+          <div className="flex flex-col sm:flex-row items-center gap-8">
+            <div className="h-24 w-24 flex-shrink-0 rounded-full bg-gray-50 border-[3px] border-gray-100 flex items-center justify-center shadow-inner">
+              <span className="text-3xl font-black text-gray-400">{initials}</span>
+            </div>
+            <div className="flex-1 w-full text-center sm:text-left">
+              <label className={labelClasses}>Nama Lengkap</label>
+              {editState.profile ? (
+                  <>
+                    <input {...register('nama_lengkap')} className={`${inputClasses} max-w-sm`} placeholder="Nama Lengkap" disabled={isLocked} />
+                    {errors.nama_lengkap && <span className={errorClasses}>{errors.nama_lengkap.message as string}</span>}
+                  </>
+              ) : (
+                  <div className={`${valueClasses} justify-center sm:justify-start text-xl py-0 mb-2 font-bold`}>{user?.nama_lengkap}</div>
+              )}
+              
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 mt-2">
+                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <User size={14} className="text-gray-400" /> Pelamar Sistem
+                  </span>
+                  <span className="text-gray-300">|</span>
+                  <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                    <Mail size={14} className="text-gray-400" /> {user?.email}
+                  </span>
               </div>
-            );
-          })}
-        </div>
-      </section>
+            </div>
+          </div>
+        ))}
 
-      {!isLocked && (
-        <div className="flex justify-end gap-4">
-          <button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="px-8 py-3.5 bg-[#fccf54] text-gray-900 rounded-2xl font-bold flex items-center gap-2 hover:bg-[#efc03f] transition-all shadow-xl shadow-[#fccf54]/20 disabled:opacity-50"
-          >
-            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
-            <span>Simpan Perubahan</span>
-          </button>
+        {/* CARD 2: PERSONAL INFORMATION */}
+        {renderCardContainer("Informasi Personal", "personal", (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+              <div>
+                <label className={labelClasses}>No. KTP / NIK</label>
+                {editState.personal ? (
+                  <>
+                    <input {...register('nik')} className={inputClasses} placeholder="16 Digit" />
+                    {errors.nik && <span className={errorClasses}>{errors.nik.message as string}</span>}
+                  </>
+                ) : <div className={valueClasses}>{initialData?.nik || '-'}</div>}
+              </div>
+              
+              <div>
+                <label className={labelClasses}>Tempat Lahir</label>
+                {editState.personal ? (
+                  <>
+                    <input {...register('tempat_lahir')} className={inputClasses} placeholder="Kota lahir" />
+                    {errors.tempat_lahir && <span className={errorClasses}>{errors.tempat_lahir.message as string}</span>}
+                  </>
+                ) : <div className={valueClasses}>{initialData?.tempat_lahir || '-'}</div>}
+              </div>
+
+              <div>
+                <label className={labelClasses}>Tanggal Lahir</label>
+                {editState.personal ? (
+                  <>
+                    <input type="date" {...register('tanggal_lahir')} className={inputClasses} />
+                    {errors.tanggal_lahir && <span className={errorClasses}>{errors.tanggal_lahir.message as string}</span>}
+                  </>
+                ) : (
+                  <div className={valueClasses}>
+                    {initialData?.tanggal_lahir ? new Date(initialData.tanggal_lahir).toLocaleDateString('id-ID', {day: 'numeric', month: 'long', year: 'numeric'}) : '-'}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClasses}>Jenis Kelamin</label>
+                {editState.personal ? (
+                  <>
+                    <select {...register('jenis_kelamin')} className={inputClasses}>
+                      <option value="">Pilih</option>
+                      <option value={JenisKelamin.L}>Laki-laki</option>
+                      <option value={JenisKelamin.P}>Perempuan</option>
+                    </select>
+                    {errors.jenis_kelamin && <span className={errorClasses}>{errors.jenis_kelamin.message as string}</span>}
+                  </>
+                ) : (
+                  <div className={valueClasses}>{initialData?.jenis_kelamin === 'L' ? 'Laki-laki' : (initialData?.jenis_kelamin === 'P' ? 'Perempuan' : '-')}</div>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-6 border-t border-[#e2e8f0] pt-6">
+              <label className={labelClasses}>Alamat Lengkap</label>
+              {editState.personal ? (
+                <>
+                  <textarea {...register('alamat')} rows={2} className={`${inputClasses} resize-none`} placeholder="Alamat domisili lengkap" />
+                  {errors.alamat && <span className={errorClasses}>{errors.alamat.message as string}</span>}
+                </>
+              ) : <div className={valueClasses}>{initialData?.alamat || '-'}</div>}
+            </div>
+          </>
+        ))}
+
+        {/* CARD 3: QUALIFICATION & EXPERIENCE */}
+        {renderCardContainer("Kualifikasi & Pengalaman", "qual", (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
+              <div>
+                <label className={labelClasses}>Jenjang Pendidikan Terakhir</label>
+                {editState.qual ? (
+                  <>
+                    <select {...register('pendidikan_terakhir')} className={inputClasses}>
+                      <option value="">Pilih Jenjang</option>
+                      {Object.values(PendidikanTerakhir).map(p => <option key={p} value={p}>{p}</option>)}
+                    </select>
+                    {errors.pendidikan_terakhir && <span className={errorClasses}>{errors.pendidikan_terakhir.message as string}</span>}
+                  </>
+                ) : <div className={valueClasses}>{initialData?.pendidikan_terakhir || '-'}</div>}
+              </div>
+
+              <div>
+                <label className={labelClasses}>Nama Institusi / Universitas</label>
+                {editState.qual ? (
+                  <>
+                    <input {...register('nama_institusi')} className={inputClasses} placeholder="Universitas / Sekolah" />
+                    {errors.nama_institusi && <span className={errorClasses}>{errors.nama_institusi.message as string}</span>}
+                  </>
+                ) : <div className={valueClasses}>{initialData?.nama_institusi || '-'}</div>}
+              </div>
+
+              <div>
+                <label className={labelClasses}>Jurusan / Program Studi</label>
+                {editState.qual ? (
+                  <>
+                    <input {...register('jurusan')} className={inputClasses} placeholder="Contoh: Sistem Informasi" />
+                    {errors.jurusan && <span className={errorClasses}>{errors.jurusan.message as string}</span>}
+                  </>
+                ) : <div className={valueClasses}>{initialData?.jurusan || '-'}</div>}
+              </div>
+
+              <div>
+                <label className={labelClasses}>Tahun Lulus</label>
+                {editState.qual ? (
+                  <>
+                    <input type="number" {...register('tahun_lulus', { valueAsNumber: true })} className={inputClasses} />
+                    {errors.tahun_lulus && <span className={errorClasses}>{errors.tahun_lulus.message as string}</span>}
+                  </>
+                ) : <div className={valueClasses}>{initialData?.tahun_lulus || '-'}</div>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-6 border-t border-[#e2e8f0] pt-6">
+              <div>
+                  <label className={labelClasses}>Bidang Keahlian Utama</label>
+                  {editState.qual ? (
+                    <>
+                      <input {...register('pengalaman_bidang')} className={inputClasses} placeholder="Contoh: Administrasi / Web Developer" />
+                      {errors.pengalaman_bidang && <span className={errorClasses}>{errors.pengalaman_bidang.message as string}</span>}
+                    </>
+                  ) : <div className={valueClasses}>{initialData?.pengalaman_bidang || '-'}</div>}
+              </div>
+
+              <div>
+                  <label className={labelClasses}>Lama Pengalaman</label>
+                  {editState.qual ? (
+                    <div className="flex items-center gap-3">
+                      <input type="number" {...register('pengalaman_kerja_tahun', { valueAsNumber: true })} className={`${inputClasses} w-32`} />
+                      <span className="text-sm font-semibold text-gray-500">Tahun</span>
+                    </div>
+                  ) : <div className={valueClasses}>{initialData?.pengalaman_kerja_tahun ? `${initialData.pengalaman_kerja_tahun} Tahun` : '-'}</div>}
+              </div>
+            </div>
+          </>
+        ))}
+
+        {/* CARD 4: DOCUMENTS */}
+        <div className="bg-white rounded-xl border border-[#e2e8f0] p-6 md:p-8 shadow-sm">
+          <div className="mb-6 border-b border-[#e2e8f0] pb-4">
+            <h3 className="text-lg font-bold text-gray-900">Berkas Pendukung</h3>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            {[
+              { id: 'ijazah', label: 'Ijazah Terakhir', accept: 'application/pdf,image/*' },
+              { id: 'cv', label: 'Curriculum Vitae', accept: 'application/pdf' },
+              { id: 'sertifikat', label: 'Sertifikat (Ops)', accept: 'application/pdf,image/*' },
+            ].map((doc) => {
+              const url = initialData?.[`berkas_${doc.id}`];
+              const isUploading = uploading[doc.id];
+
+              return (
+                <div key={doc.id} className="border border-[#e2e8f0] rounded-xl p-5 bg-[#f8fafc] flex flex-col h-full hover:border-gray-300 transition-colors">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileText size={16} className="text-[#fccf54]" />
+                    <span className="text-sm text-gray-900 font-medium">{doc.label}</span>
+                  </div>
+                  
+                  {url ? (
+                     <div className="mt-auto flex items-center gap-2">
+                       <a href={url} target="_blank" className="flex-1 flex justify-center items-center gap-1.5 py-2.5 bg-white border border-[#e2e8f0] rounded-lg text-xs font-semibold hover:border-black transition-colors">
+                         <Search size={14} /> Lihat Berkas
+                       </a>
+                       {!isLocked && (
+                         <button type="button" onClick={() => handleFileDelete(url, doc.id as any)} className="p-2.5 border border-[#dc3545]/20 bg-[#dc3545]/10 text-[#dc3545] rounded-lg hover:bg-[#dc3545] hover:text-white transition-colors">
+                           <Trash2 size={16} />
+                         </button>
+                       )}
+                     </div>
+                  ) : (
+                    <label className={`mt-auto w-full py-4 border-2 border-dashed border-[#e2e8f0] rounded-lg flex flex-col justify-center items-center gap-2 text-xs font-semibold text-[#64748b] bg-white hover:border-black hover:text-black transition-colors cursor-pointer ${isLocked || isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                       {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+                       Unggah File
+                       <input type="file" className="sr-only" accept={doc.accept} disabled={isLocked || isUploading} onChange={(e) => handleFileUpload(e, doc.id as any)} />
+                    </label>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
-      )}
-    </form>
+
+      </form>
+    </>
   );
 };
 

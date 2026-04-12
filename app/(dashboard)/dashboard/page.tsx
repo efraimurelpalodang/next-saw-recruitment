@@ -26,7 +26,7 @@ export default async function DashboardPage() {
 
   const roleAuth = pengguna.peran.nama_peran.toLowerCase();
 
-  // Pelamar dashboard remains simple as requested
+  // Pelamar: layout.tsx sudah handle wrapping, page ini hanya render konten
   if (roleAuth === "pelamar") {
     const dataPelamar = await prisma.pengguna.findUnique({
       where: { id_pengguna: session.id_pengguna },
@@ -35,15 +35,11 @@ export default async function DashboardPage() {
         lamaran: {
           include: {
             lowongan: {
-              include: {
-                jenis_pekerjaan: true
-              }
+              include: { jenis_pekerjaan: true }
             },
-            penilaian: true
           },
-          orderBy: {
-            tanggal_lamar: 'desc'
-          }
+          orderBy: { tanggal_lamar: 'desc' },
+          take: 5, // summary saja, rekap lengkap ada di /dashboard/lamaran
         }
       },
     });

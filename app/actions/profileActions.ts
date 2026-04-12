@@ -47,8 +47,16 @@ export async function updateProfile(formData: any) {
       },
     });
 
+    if (formData.nama_lengkap) {
+      await prisma.pengguna.update({
+        where: { id_pengguna: session.id_pengguna },
+        data: { nama_lengkap: formData.nama_lengkap }
+      });
+    }
+
     revalidatePath("/dashboard");
-    revalidatePath("/dashboard/profil");
+    revalidatePath("/dashboard/cv");
+    revalidatePath("/dashboard/lamaran");
     
     return { success: true, data: result };
   } catch (error: any) {

@@ -1,0 +1,41 @@
+import { getSession } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import prisma from "@/lib/prisma";
+import PelamarLayout from "@/components/dashboard/pelamar/PelamarLayout";
+
+export default async function DashboardParentLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const session = await getSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  // Fetch user role
+  const pengguna = await prisma.pengguna.findUnique({
+    where: { id_pengguna: session.id_pengguna },
+    include: { peran: true },
+  });
+
+  if (!pengguna || !pengguna.status_aktif) {
+    redirect("/login");
+  }
+
+  const role = pengguna.peran.nama_peran.toLowerCase();
+
+  // If Pelamar, use the Horizontal Tab Layout
+  if (role === "pelamar") {
+    return (
+      <PelamarLayout user={pengguna}>
+        {children}
+      </PelamarLayout>
+    );
+  }
+
+  // For other roles (Admin/HRD/Manajer), just pass through
+  // Note: These pages currently wrap themselves in DashboardLayout (Sidebar/TopBar)
+  return <>{children}</>;
+}
