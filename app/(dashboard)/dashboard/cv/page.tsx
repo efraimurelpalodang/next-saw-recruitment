@@ -34,13 +34,12 @@ export default async function CVSayaPage() {
 
   return (
     <div className="w-full max-w-5xl mx-auto pb-10">
-      {/* Header Ala Tailadmin (User Profile + Breadcrumbs) */}
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-[22px] font-bold text-gray-900">User Profile</h2>
+        <h2 className="text-[22px] font-bold text-gray-900">Detail Profil Pelamar</h2>
         <div className="flex items-center gap-2 text-sm text-gray-500">
-          <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Home</Link>
+          <Link href="/dashboard" className="hover:text-gray-900 transition-colors">Beranda</Link>
           <span className="text-gray-300">&gt;</span>
-          <span className="text-[#fccf54] font-medium">User Profile</span>
+          <span className="text-[#fccf54] font-medium">CV Saya</span>
         </div>
       </div>
 

@@ -23,7 +23,7 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50/50 flex flex-col font-plus">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo Section */}
@@ -42,7 +42,7 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
               <nav className="hidden md:flex items-center gap-1 ml-4">
                 <Link 
                   href="/#careers"
-                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-[#efc03f] transition-colors"
+                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-600 transition-colors"
                 >
                   Info Peluang Karir
                 </Link>
@@ -52,7 +52,7 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`px-4 py-2 text-sm font-bold rounded-lg transition-all relative ${
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all relative ${
                         isActive 
                         ? 'text-gray-900 bg-gray-50' 
                         : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50/50'
@@ -72,12 +72,12 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex flex-col items-end mr-2">
                 <p className="text-sm font-bold text-gray-900">{user.nama_lengkap}</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PELAMAR</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">PELAMAR</p>
               </div>
               <form action={logoutAction}>
                 <button 
                   type="submit"
-                  className="w-10 h-10 bg-gray-50 text-gray-400 hover:bg-red-50 hover:text-red-500 rounded-xl flex items-center justify-center transition-all group"
+                  className="w-10 h-10 bg-gray-50 text-gray-400 hover:cursor-pointer hover:text-red-500 rounded-xl flex items-center justify-center transition-all group"
                   title="Logout"
                 >
                   <LogOut size={20} className="group-hover:scale-110 transition-transform" />
@@ -116,18 +116,11 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:bg-gray-50">
         <div className="animate-in fade-in duration-500">
           {children}
         </div>
-      </main>
-
-      {/* Simple Footer */}
-      <footer className="py-8 border-t border-gray-100 text-center">
-        <p className="text-xs font-bold text-gray-400 tracking-wider uppercase">
-          &copy; {new Date().getFullYear()} SAW Recruitment System. All Rights Reserved.
-        </p>
-      </footer>
+      </main> 
     </div>
   );
 }

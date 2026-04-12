@@ -34,8 +34,6 @@ export default async function DashboardParentLayout({
       </PelamarLayout>
     );
   }
-
-  // For other roles (Admin/HRD/Manajer), just pass through
-  // Note: These pages currently wrap themselves in DashboardLayout (Sidebar/TopBar)
+  
   return <>{children}</>;
 }

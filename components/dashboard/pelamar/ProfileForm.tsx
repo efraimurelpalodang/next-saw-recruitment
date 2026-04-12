@@ -152,7 +152,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
     const isEdit = editState[editKey];
 
     return (
-      <div className="bg-white rounded-xl border border-[#e2e8f0] p-6 md:p-8 shadow-sm transition-all duration-300">
+      <div className="bg-white rounded-xl border border-[#e2e8f0] p-6 md:p-8 shadow-xs transition-all duration-300">
         <div className="flex items-center justify-between mb-8 border-b border-[#e2e8f0] pb-4">
           <h3 className="text-lg font-bold text-gray-900">{title}</h3>
           {!isLocked && (
@@ -161,7 +161,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
                  <button 
                   type="button" 
                   onClick={() => cancelEdit(editKey)} 
-                  className="px-4 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-full transition-colors hidden sm:block"
+                  className="px-4 py-1.5 text-xs border border-[#e2e8f0] text-gray-600 rounded-full text-xs hover:bg-gray-50 transition-colors hidden sm:block hover:cursor-pointer"
                   disabled={isSubmitting}
                  >
                    Batal
@@ -169,7 +169,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
                  <button 
                   type="submit" 
                   disabled={isSubmitting}
-                  className="flex items-center gap-1.5 px-5 py-1.5 bg-[#fccf54] text-gray-900 rounded-full text-xs font-bold hover:bg-[#efc03f] transition-colors"
+                  className="flex items-center gap-1.5 px-5 py-1.5 bg-[#fccf54] text-gray-900 rounded-full text-xs hover:bg-[#efc03f] transition-colors hover:cursor-pointer"
                  >
                    {isSubmitting ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />} Simpan
                  </button>
@@ -178,7 +178,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
                 <button 
                   type="button" 
                   onClick={() => setEditState(prev => ({ ...prev, [editKey]: true }))}
-                  className="flex items-center gap-1.5 px-4 py-1.5 border border-[#e2e8f0] text-gray-600 rounded-full text-xs hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-1.5 px-4 py-1.5 border border-[#e2e8f0] text-gray-600 rounded-full text-xs hover:bg-gray-50 transition-colors hover:cursor-pointer"
                 >
                   <Edit2 size={12} /> Ubah
                 </button>
@@ -217,7 +217,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
         {/* CARD 1: PROFILE HEADER (Identity) */}
         {renderCardContainer("Profil", "profile", (
           <div className="flex flex-col sm:flex-row items-center gap-8">
-            <div className="h-24 w-24 flex-shrink-0 rounded-full bg-gray-50 border-[3px] border-gray-100 flex items-center justify-center shadow-inner">
+            <div className="h-24 w-24 flex-shrink-0 rounded-full bg-gray-50 border-[1.5px] border-gray-100 flex items-center justify-center">
               <span className="text-3xl font-black text-gray-400">{initials}</span>
             </div>
             <div className="flex-1 w-full text-center sm:text-left">
@@ -233,7 +233,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
               
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-4 mt-2">
                   <span className="flex items-center gap-1.5 text-xs text-gray-500">
-                    <User size={14} className="text-gray-400" /> Pelamar Sistem
+                    <User size={14} className="text-gray-400" /> Pelamar 
                   </span>
                   <span className="text-gray-300">|</span>
                   <span className="flex items-center gap-1.5 text-xs text-gray-500">
@@ -299,7 +299,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
               </div>
             </div>
 
-            <div className="mt-6 border-t border-[#e2e8f0] pt-6">
+            <div className="mt-6">
               <label className={labelClasses}>Alamat Lengkap</label>
               {editState.personal ? (
                 <>
@@ -359,7 +359,7 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-6 border-t border-[#e2e8f0] pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6 mt-6">
               <div>
                   <label className={labelClasses}>Bidang Keahlian Utama</label>
                   {editState.qual ? (
@@ -393,13 +393,13 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
             {[
               { id: 'ijazah', label: 'Ijazah Terakhir', accept: 'application/pdf,image/*' },
               { id: 'cv', label: 'Curriculum Vitae', accept: 'application/pdf' },
-              { id: 'sertifikat', label: 'Sertifikat (Ops)', accept: 'application/pdf,image/*' },
+              { id: 'sertifikat', label: 'Sertifikat (Opsional)', accept: 'application/pdf,image/*' },
             ].map((doc) => {
               const url = initialData?.[`berkas_${doc.id}`];
               const isUploading = uploading[doc.id];
 
               return (
-                <div key={doc.id} className="border border-[#e2e8f0] rounded-xl p-5 bg-[#f8fafc] flex flex-col h-full hover:border-gray-300 transition-colors">
+                <div key={doc.id} className="border border-[#e2e8f0] rounded-xl p-5 bg-gray-50 flex flex-col h-full hover:border-gray-300 transition-colors">
                   <div className="flex items-center gap-2 mb-4">
                     <FileText size={16} className="text-[#fccf54]" />
                     <span className="text-sm text-gray-900 font-medium">{doc.label}</span>
@@ -428,7 +428,6 @@ const ProfileForm = ({ user, isLocked }: ProfileFormProps) => {
             })}
           </div>
         </div>
-
       </form>
     </>
   );
