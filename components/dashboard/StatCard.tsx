@@ -6,25 +6,58 @@ interface StatCardProps {
   value: string | number;
   icon: LucideIcon;
   color?: string;
+  trendValue?: string;
+  trendLabel?: string;
+  trendColor?: string;
+  viewLink?: string;
+  viewText?: string;
 }
 
-export default function StatCard({ label, value, icon: Icon, color = "primary" }: StatCardProps) {
-  return (
-   <div className="bg-white p-6 rounded-[7px] border border-[#f5f2f2] shadow-xs transition-shadow group flex items-center justify-between overflow-hidden">
-    <div>
-     <h4 className="text-[13px] font-semibold text-[#5a6a85] mb-2 uppercase tracking-tight">{label}</h4>
-     <div className="flex items-center gap-1">
-      <span className="text-2xl font-bold text-[#2a3547]">{value}</span>
-     </div>
-    </div>
+export default function StatCard({ 
+  label, 
+  value, 
+  icon: Icon, 
+  color = "primary",
+  trendValue = "+5%",
+  trendLabel = "vs Last Month",
+  trendColor = "success",
+  viewLink = "#",
+  viewText = "View"
+}: StatCardProps) {
+  
+  const colorMap: Record<string, string> = {
+    primary: "text-[#eb6f4c]",
+    danger: "text-[#fa5a6e]",
+    warning: "text-[#fbae1c]",
+    success: "text-[#13deb9]",
+    info: "text-[#5d87ff]",
+  };
 
-    <div
-     className={`w-[45px] h-[45px] rounded-full flex items-center justify-center transition-transform group-hover:scale-110 duration-300 ${
-      color === "primary" ? "bg-[#fef7df] text-[#fccf54]" : color === "success" ? "bg-[#e8f7ff] text-[#0085db]" : color === "info" ? "bg-[#ecf2ff] text-[#5d87ff]" : "bg-[#fdf3f5] text-[#fa896b]"
-     }`}
-    >
-     <Icon size={22} strokeWidth={2.2} />
+  const getThemeColor = (colorName: string) => {
+    return colorMap[colorName] || colorMap.primary;
+  };
+
+  return (
+    <div className="bg-white p-6 rounded-[5px] border border-[#f5f2f2] shadow-xs flex flex-col justify-between">
+      <div className="flex justify-between items-center mb-5">
+        <div>
+          <h2 className="text-[26px] font-extrabold text-[#2a3547] mb-1 tracking-tight">{value}</h2>
+          <p className="text-[14px] text-[#5a6a85] font-medium">{label}</p>
+        </div>
+        <div className={getThemeColor(color)}>
+          <Icon size={40} strokeWidth={2.2} />
+        </div>
+      </div>
+      
+      <div className="border-t border-[#f5f2f2] pt-4 flex flex-wrap justify-between items-center text-[13px]">
+        <div className="flex gap-1">
+          <span className={`font-semibold ${getThemeColor(trendColor)}`}>{trendValue}</span>
+          <span className="text-[#5a6a85] font-medium">{trendLabel}</span>
+        </div>
+        <a href={viewLink} className={`font-semibold hover:underline ${getThemeColor(color)}`}>
+          {viewText}
+        </a>
+      </div>
     </div>
-   </div>
   );
 }

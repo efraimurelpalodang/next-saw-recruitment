@@ -23,8 +23,8 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50/50 flex flex-col font-plus">
       {/* Top Navigation Bar */}
-      <header className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="sticky top-0 z-50 bg-white border-b border-gray-50 sm:border-gray-100 shadow-xs">
+        <div className="max-w-[68rem] mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             {/* Logo Section */}
             <div className="flex items-center gap-8">
@@ -42,7 +42,7 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
               <nav className="hidden md:flex items-center gap-1 ml-4">
                 <Link 
                   href="/#careers"
-                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-gray-600 transition-colors"
+                  className="px-4 py-2 text-sm font-semibold text-gray-400 hover:text-gray-600 transition-colors"
                 >
                   Info Peluang Karir
                 </Link>
@@ -116,7 +116,7 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:bg-gray-50">
+      <main className="flex-1 max-w-[68rem] mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:bg-gray-50">
         <div className="animate-in fade-in duration-500">
           {children}
         </div>

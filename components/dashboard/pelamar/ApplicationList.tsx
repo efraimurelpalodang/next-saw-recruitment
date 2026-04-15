@@ -10,12 +10,12 @@ interface ApplicationListProps {
 const ApplicationList = ({ lamaran }: ApplicationListProps) => {
   if (lamaran.length === 0) {
     return (
-      <div className="bg-white rounded-[2.5rem] border-2 border-dashed border-gray-100 p-16 text-center">
+      <div className="bg-white rounded-sm border-2 border-dashed border-gray-100 p-16 text-center">
         <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
           <Briefcase size={40} className="text-gray-200" />
         </div>
         <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight mb-3">Belum Ada Lamaran</h3>
-        <p className="text-gray-400 font-bold text-sm max-w-sm mx-auto mb-8 leading-relaxed">
+        <p className="text-gray-400 italic text-sm max-w-sm mx-auto mb-8 leading-relaxed">
           Anda belum mengirimkan lamaran pekerjaan. Jelajahi lowongan yang tersedia dan mulailah perjalanan karir Anda.
         </p>
         <Link 

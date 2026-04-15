@@ -70,7 +70,7 @@ const HeroSection = () => {
         <div className="hidden lg:flex justify-end animate-in fade-in zoom-in-95 duration-1000 delay-300 -translate-y-12">
           <div className="bg-white/10 backdrop-blur-xl border border-white/20 p-8 rounded-[40px] w-80 shadow-2xl relative">
             <div className="absolute -top-6 -left-6 w-20 h-20 bg-[#fccf54] rounded-3xl flex items-center justify-center shadow-lg transform rotate-12">
-              <Image src="/next.svg" alt="Quality" width={30} height={30} className="invert" />
+              <Image src="/next.svg" alt="Quality" width={30} height={30} className="invert" style={{ height: 'auto' }} />
             </div>
 
             <div className="mt-8 space-y-6">

@@ -1,59 +1,54 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
 
+// We don't need pg adapter strictly for seeding if local test db uses connection pooling natively, 
+// but to be safe and consistent with the previous seed script:
 import { Pool } from 'pg';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 const connectionString = `${process.env.DATABASE_URL}`;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
-const defaultPrisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
-  console.log("Seeding database...");
+  console.log("Cleaning database...");
+  await prisma.penilaian.deleteMany();
+  await prisma.lamaran.deleteMany();
+  await prisma.lowongan.deleteMany();
+  await prisma.profilPelamar.deleteMany();
+  await prisma.pengguna.deleteMany();
+  await prisma.bobotKriteria.deleteMany();
+  await prisma.jenisPekerjaan.deleteMany();
+  await prisma.peran.deleteMany();
 
-  // Seed Peran
-  await defaultPrisma.peran.upsert({
-    where: { nama_peran: "hrd" },
-    update: {},
-    create: { nama_peran: "hrd", deskripsi: "Human Resources Department" },
-  });
+  console.log("Seeding Roles...");
+  const roles = [
+    { nama_peran: "hrd", deskripsi: "Human Resources Department" },
+    { nama_peran: "pelamar", deskripsi: "Pencari Kerja" },
+    { nama_peran: "manajer", deskripsi: "Manajer Perusahaan" },
+    { nama_peran: "admin", deskripsi: "Administrator Sistem" },
+  ];
+  const roleCache: Record<string, string> = {};
+  for (const role of roles) {
+    const r = await prisma.peran.create({ data: role });
+    roleCache[r.nama_peran] = r.id_peran;
+  }
 
-  await defaultPrisma.peran.upsert({
-    where: { nama_peran: "pelamar" },
-    update: {},
-    create: { nama_peran: "pelamar", deskripsi: "Pencari Kerja" },
-  });
-
-  await defaultPrisma.peran.upsert({
-    where: { nama_peran: "manajer" },
-    update: {},
-    create: { nama_peran: "manajer", deskripsi: "Manajer Perusahaan" },
-  });
-  
-  await defaultPrisma.peran.upsert({
-    where: { nama_peran: "admin" },
-    update: {},
-    create: { nama_peran: "admin", deskripsi: "Administrator Sistem" },
-  });
-
-  // Seed JenisPekerjaan
+  console.log("Seeding Job Types...");
   const jobs = [
     { kode_jenis: "QC", nama_jenis: "Quality Control", deskripsi_umum: "Staf QC" },
     { kode_jenis: "DRIVER", nama_jenis: "Driver", deskripsi_umum: "Sopir Perusahaan" },
     { kode_jenis: "SALES", nama_jenis: "Sales", deskripsi_umum: "Staf Pemasaran" },
-    { kode_jenis: "WAREHOUSE", nama_jenis: "Staff Gudang", deskripsi_umum: "Staf Gudang / Warehouse" },
+    { kode_jenis: "WAREHOUSE", nama_jenis: "Staff Gudang", deskripsi_umum: "Staf Gudang" },
   ];
-
+  const jobCache: Record<string, string> = {};
   for (const job of jobs) {
-    await defaultPrisma.jenisPekerjaan.upsert({
-      where: { kode_jenis: job.kode_jenis },
-      update: {},
-      create: job,
-    });
+    const j = await prisma.jenisPekerjaan.create({ data: job });
+    jobCache[j.kode_jenis] = j.id_jenis_pekerjaan;
   }
 
-  // Seed BobotKriteria
+  console.log("Seeding Weights (SAW)...");
   const kriteria = [
     { kode_kriteria: "C1", nama_kriteria: "Pendidikan", bobot: 0.20, keterangan: "Bobot 20%" },
     { kode_kriteria: "C2", nama_kriteria: "Pengalaman Kerja", bobot: 0.25, keterangan: "Bobot 25%" },
@@ -61,102 +56,114 @@ async function main() {
     { kode_kriteria: "C4", nama_kriteria: "Tes Keterampilan", bobot: 0.25, keterangan: "Bobot 25%" },
     { kode_kriteria: "C5", nama_kriteria: "Wawancara", bobot: 0.15, keterangan: "Bobot 15%" },
   ];
-
   for (const kmt of kriteria) {
-    await defaultPrisma.bobotKriteria.upsert({
-      where: { kode_kriteria: kmt.kode_kriteria },
-      update: {},
-      create: kmt,
-    });
+    await prisma.bobotKriteria.create({ data: kmt });
   }
 
-  // Seed Default Management Users
-  console.log("Seeding default users...");
+  console.log("Seeding Management Users...");
   const hashedPassword = await bcrypt.hash("password123", 10);
+  
+  const hrdUser = await prisma.pengguna.create({
+    data: { email: "hrd@saw.com", kata_sandi: hashedPassword, nama_lengkap: "HRD Recruitment", id_peran: roleCache["hrd"] }
+  });
+  await prisma.pengguna.create({
+    data: { email: "admin@saw.com", kata_sandi: hashedPassword, nama_lengkap: "Super Admin", id_peran: roleCache["admin"] }
+  });
+  await prisma.pengguna.create({
+    data: { email: "manager@saw.com", kata_sandi: hashedPassword, nama_lengkap: "Manager Recruitment", id_peran: roleCache["manajer"] }
+  });
 
-  const managementUsers = [
-    {
-      email: "admin@saw.com",
-      nama_lengkap: "Super Admin",
-      role: "admin",
-    },
-    {
-      email: "hrd@saw.com",
-      nama_lengkap: "HRD Recruitment",
-      role: "hrd",
-    },
-    {
-      email: "manager@saw.com",
-      nama_lengkap: "Manager Recruitment",
-      role: "manajer",
-    },
+  console.log("Seeding Vacancies...");
+  const qcLowongan = await prisma.lowongan.create({
+    data: {
+      id_jenis_pekerjaan: jobCache["QC"],
+      id_pengguna: hrdUser.id_pengguna,
+      deskripsi: "Mencari Staff Quality Control untuk pabrik.",
+      persyaratan: "S1 Teknologi Pangan, 1-2 tahun mapan.",
+      lokasi_kerja: "Bekasi",
+      tanggal_buka: new Date(),
+      tanggal_tutup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: "aktif"
+    }
+  });
+
+  const whLowongan = await prisma.lowongan.create({
+    data: {
+      id_jenis_pekerjaan: jobCache["WAREHOUSE"],
+      id_pengguna: hrdUser.id_pengguna,
+      deskripsi: "Staff Gudang mengurus logistik.",
+      persyaratan: "SMA, tangguh.",
+      lokasi_kerja: "Tangerang",
+      tanggal_buka: new Date(),
+      tanggal_tutup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      status: "aktif"
+    }
+  });
+
+  console.log("Seeding Applicants and Applications...");
+  const dummyApplicants = [
+    { name: "Andi Saputra", email: "andi@gmail.com", edukasi: "S1", jurusan: "Teknologi Pangan" },
+    { name: "Dewi Lestari", email: "dewi.l@gmail.com", edukasi: "S1", jurusan: "Teknik Kimia" },
+    { name: "Budi Cahyono", email: "budi.c@yahoo.com", edukasi: "SMA", jurusan: "IPA" },
+    { name: "Siti Aminah", email: "siti.a@gmail.com", edukasi: "SMK", jurusan: "Logistik" },
   ];
 
-  for (const mu of managementUsers) {
-    const roleObj = await defaultPrisma.peran.findUnique({
-      where: { nama_peran: mu.role },
+  for (let i = 0; i < dummyApplicants.length; i++) {
+    const p = dummyApplicants[i];
+    
+    // Create Pengguna
+    const userPelamar = await prisma.pengguna.create({
+      data: {
+        email: p.email,
+        kata_sandi: hashedPassword,
+        nama_lengkap: p.name,
+        id_peran: roleCache["pelamar"]
+      }
     });
 
-    if (roleObj) {
-      const user = await defaultPrisma.pengguna.upsert({
-        where: { email: mu.email },
-        update: {},
-        create: {
-          email: mu.email,
-          kata_sandi: hashedPassword,
-          nama_lengkap: mu.nama_lengkap,
-          id_peran: roleObj.id_peran,
-        },
-      });
-
-      // Seed sample Lowongan for HRD
-      if (mu.role === "hrd") {
-        const qcType = await defaultPrisma.jenisPekerjaan.findUnique({ where: { kode_jenis: "QC" } });
-        const whType = await defaultPrisma.jenisPekerjaan.findUnique({ where: { kode_jenis: "WAREHOUSE" } });
-        const salesType = await defaultPrisma.jenisPekerjaan.findUnique({ where: { kode_jenis: "SALES" } });
-
-        if (qcType && whType && salesType) {
-          const sampleLowongan = [
-            {
-              id_jenis_pekerjaan: qcType.id_jenis_pekerjaan,
-              id_pengguna: user.id_pengguna,
-              deskripsi: "Mencari Staff Quality Control untuk memastikan standar keamanan pangan di pabrik.",
-              persyaratan: "Pendidikan min. S1 Teknologi Pangan, pengalaman 1-2 tahun.",
-              lokasi_kerja: "Bekasi, Jawa Barat",
-              tanggal_buka: new Date(),
-              tanggal_tutup: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-              status: "aktif" as const,
-            },
-            {
-              id_jenis_pekerjaan: whType.id_jenis_pekerjaan,
-              id_pengguna: user.id_pengguna,
-              deskripsi: "Dibutuhkan Staff Gudang untuk manajemen stok bahan baku dan pengiriman.",
-              persyaratan: "Pendidikan min. SMA/SMK, detail-oriented, sehat jasmani.",
-              lokasi_kerja: "Tangerang, Banten",
-              tanggal_buka: new Date(),
-              tanggal_tutup: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-              status: "aktif" as const,
-            },
-            {
-              id_jenis_pekerjaan: salesType.id_jenis_pekerjaan,
-              id_pengguna: user.id_pengguna,
-              deskripsi: "Sales Executive untuk menangani klien B2B (pabrik makanan).",
-              persyaratan: "Pendidikan min. D3/S1, kemampuan negosiasi tinggi, memiliki kendaraan sendiri.",
-              lokasi_kerja: "Jakarta Selatan",
-              tanggal_buka: new Date(),
-              tanggal_tutup: new Date(Date.now() + 20 * 24 * 60 * 60 * 1000),
-              status: "aktif" as const,
-            },
-          ];
-
-          for (const low of sampleLowongan) {
-            await defaultPrisma.lowongan.create({
-              data: low,
-            });
-          }
-        }
+    // Create Profile
+    await prisma.profilPelamar.create({
+      data: {
+        id_pengguna: userPelamar.id_pengguna,
+        nik: `320101234567890${i}`,
+        tempat_lahir: "Jakarta",
+        tanggal_lahir: new Date("1995-01-01"),
+        jenis_kelamin: "L",
+        alamat: "Jl. Sudirman",
+        pendidikan_terakhir: p.edukasi as any,
+        jurusan: p.jurusan,
+        nama_institusi: "Universitas Indonesia",
+        tahun_lulus: 2018,
+        berkas_ijazah: "",
+        pengalaman_kerja_tahun: Math.floor(Math.random() * 5),
+        berkas_cv: "",
       }
-    }
+    });
+
+    // Apply for QC or Warehouse based on applicant index
+    const isQC = i < 2;
+    const targetLowongan = isQC ? qcLowongan.id_lowongan : whLowongan.id_lowongan;
+    
+    const lamaran = await prisma.lamaran.create({
+      data: {
+        id_lowongan: targetLowongan,
+        id_pengguna: userPelamar.id_pengguna,
+        status: "pending"
+      }
+    });
+
+    // Add Penilaian automatically (dummy scoring C1-C5, max 100 per criteria)
+    await prisma.penilaian.create({
+      data: {
+        id_lamaran: lamaran.id_lamaran,
+        id_pengguna: hrdUser.id_pengguna,
+        nilai_c1_pendidikan: 80 + Math.random() * 20,
+        nilai_c2_pengalaman: 70 + Math.random() * 30,
+        nilai_c3_sertifikasi: 60 + Math.random() * 40,
+        nilai_c4_tes_keterampilan: 75 + Math.random() * 25,
+        nilai_c5_wawancara: 85 + Math.random() * 15,
+      }
+    });
   }
 
   console.log("Database seeded successfully!");
@@ -168,5 +175,5 @@ main()
     process.exit(1);
   })
   .finally(async () => {
-    await defaultPrisma.$disconnect();
+    await prisma.$disconnect();
   });

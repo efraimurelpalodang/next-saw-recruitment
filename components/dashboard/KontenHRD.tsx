@@ -1,62 +1,102 @@
 import React from "react";
 import { Briefcase, Users, Search, ClipboardCheck, ArrowUpRight, Plus } from "lucide-react";
 import StatCard from "./StatCard";
+import prisma from "@/lib/prisma";
+import Link from "next/link";
 
 interface KontenHRDProps {
   pengguna: any;
 }
 
-export default function KontenHRD({ pengguna }: KontenHRDProps) {
+export default async function KontenHRD({ pengguna }: KontenHRDProps) {
+  // Fetch real statistics
+  const totalLowonganAkitf = await prisma.lowongan.count({ where: { status: "aktif" } });
+  
+  // Count pelamar (semua lamaran)
+  const totalPelamar = await prisma.lamaran.count();
+  
+  // Count review tahap 1 (pending)
+  const pelamarPending = await prisma.lamaran.count({ where: { status: "pending" } });
+  
+  // Count hired
+  const hired = await prisma.lamaran.count({ 
+    where: { 
+       keputusan_hrd: "diterima" 
+    } 
+  });
+
+  // Ambil lowongan dengan pelamar terbarunya
+  const lowonganAktif = await prisma.lowongan.findMany({
+    where: { status: "aktif" },
+    include: {
+      jenis_pekerjaan: true,
+      lamaran: {
+        include: {
+          pengguna: { include: { profil: true } },
+          penilaian: true
+        },
+        orderBy: { tanggal_lamar: 'desc' },
+        take: 5
+      }
+    },
+    take: 4 // Batasi tampilin 4 list lowongan di dashboard
+  });
+
   return (
    <div className="animate-in fade-in duration-500 space-y-6">
     {/* Stats Section */}
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-     <StatCard label="Lowongan Aktif" value="15" icon={Briefcase} color="primary" />
-     <StatCard label="Pelamar Baru" value="124" icon={Users} color="info" />
-     <StatCard label="Review Tahap 1" value="28" icon={Search} color="success" />
-     <StatCard label="Hired" value="42" icon={ClipboardCheck} color="info" />
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+     <StatCard label="Lowongan Aktif" value={totalLowonganAkitf} icon={Briefcase} color="primary" trendValue="" trendLabel="Hingga saat ini" trendColor="success" viewText="Kelola" viewLink="/dashboard/vacancies" />
+     <StatCard label="Total Pelamar" value={totalPelamar} icon={Users} color="danger" trendValue="" trendLabel="Seluruh lowongan" trendColor="success" viewText="Lihat" viewLink="/dashboard/applicants" />
+     <StatCard label="Review Tahap 1" value={pelamarPending} icon={Search} color="warning" trendValue="" trendLabel="Menunggu Proses" trendColor="warning" viewText="Proses" viewLink="/dashboard/scoring" />
+     <StatCard label="Hired" value={hired} icon={ClipboardCheck} color="info" trendValue="" trendLabel="Total Diterima" trendColor="success" viewText="Riwayat" viewLink="/dashboard/applicants" />
     </div>
 
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-     {/* Table List View */}
-     <div className="lg:col-span-2 bg-white rounded-[7px] border border-[#f5f2f2] shadow-xs p-6">
-      <div className="flex items-center justify-between mb-6">
-       <h3 className="font-bold text-[#2a3547]">Daftar Lamaran Terbaru</h3>
-       <button className="text-xs font-bold text-[#fccf54] hover:underline hover:cursor-pointer flex items-center gap-1">
-        Selengkapnya <ArrowUpRight size={14} />
-       </button>
-      </div>
+     {/* Daftar Lamaran List View */}
+     <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      {lowonganAktif.map((lws) => (
+        <div key={lws.id_lowongan} className="bg-white rounded-[7px] border border-[#f5f2f2] shadow-xs">
+         <div className="p-5 flex items-center justify-between border-b border-[#f5f2f2]">
+          <h3 className="font-bold text-[#2a3547] text-[15px] truncate max-w-[150px]">{lws.jenis_pekerjaan.nama_jenis}</h3>
+          <Link href={`/dashboard/scoring?vacancy=${lws.id_lowongan}`} className="text-[12px] font-bold text-[#fa896b] hover:underline flex items-center gap-1">
+           Lihat Semua
+          </Link>
+         </div>
+         <div className="p-0 flex flex-col">
+          {lws.lamaran.length === 0 ? (
+             <div className="px-5 py-8 text-center text-xs text-gray-400">Belum ada pelamar.</div>
+          ) : (
+            lws.lamaran.map((lam, i) => (
+              <div key={lam.id_lamaran} className="px-5 py-4 flex items-center justify-between border-b border-[#f5f2f2] last:border-0 hover:bg-gray-50/50 transition-colors">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-11 h-11 rounded-[8px] bg-[#f2f6fa] flex items-center justify-center font-bold text-[15px] text-[#5a6a85] shrink-0">
+                  {lam.pengguna.nama_lengkap.charAt(0).toUpperCase()}
+                  </div>
+                  <div>
+                  <h4 className="text-[14px] font-semibold text-[#2a3547] leading-tight mb-1 truncate max-w-[120px]">{lam.pengguna.nama_lengkap}</h4>
+                  <p className="text-[12px] text-[#5a6a85] font-medium truncate max-w-[120px]">{lam.pengguna.email}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  {/* For rendering badge we can use static colors based on score status, for now static teal */}
+                  <span className={`text-[11px] font-bold px-2 py-1 rounded-[4px] bg-[#e8f7ff] text-[#0085db]`}>
+                     {lam.penilaian?.nilai_preferensi ? lam.penilaian.nilai_preferensi.toFixed(2) : "Menunggu"}
+                  </span>
+                </div>
+              </div>
+            ))
+          )}
+         </div>
+        </div>
+      ))}
 
-      <div className="overflow-x-auto">
-       <table className="w-full text-left whitespace-nowrap">
-        <thead>
-         <tr className="border-b border-[#f2f6fa]">
-          <th className="pb-3 text-xs font-bold text-[#2a3547] uppercase tracking-wider">Kandidat</th>
-          <th className="pb-3 text-xs font-bold text-[#2a3547] uppercase tracking-wider px-4">Posisi</th>
-          <th className="pb-3 text-xs font-bold text-[#2a3547] uppercase tracking-wider text-right">Skor SAW</th>
-         </tr>
-        </thead>
-        <tbody className="divide-y divide-[#f2f6fa]">
-         {[
-          { name: "Andi Saputra", pos: "Software Engineer", score: "0.982", bg: "bg-emerald-50 text-emerald-600" },
-          { name: "Siti Aminah", pos: "UI/UX Designer", score: "0.854", bg: "bg-[#ecf2ff] text-[#5d87ff]" },
-          { name: "Budi Cahyono", pos: "Project Manager", score: "0.720", bg: "bg-amber-50 text-amber-600" },
-          { name: "Dewi Lestari", pos: "QA Engineer", score: "0.912", bg: "bg-emerald-50 text-emerald-600" },
-         ].map((item, i) => (
-          <tr key={i} className="hover:bg-gray-50/50 transition-colors">
-           <td className="py-4 flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#f2f6fa] flex items-center justify-center font-bold text-xs text-[#5a6a85]">{item.name.charAt(0)}</div>
-            <span className="text-sm font-semibold text-[#2a3547]">{item.name}</span>
-           </td>
-           <td className="py-4 px-4 font-medium text-[#5a6a85] text-sm">{item.pos}</td>
-           <td className="py-4 text-right">
-            <span className={`text-[11px] font-bold px-3 py-1 rounded-[4px] ${item.bg}`}>{item.score}</span>
-           </td>
-          </tr>
-         ))}
-        </tbody>
-       </table>
-      </div>
+      {lowonganAktif.length === 0 && (
+         <div className="col-span-2 text-center py-10 bg-white rounded-[7px] border border-[#f5f2f2]">
+            <p className="text-gray-400 text-sm">Belum ada lowongan aktif.</p>
+         </div>
+      )}
      </div>
 
      {/* Quick Action Widget */}
@@ -67,14 +107,14 @@ export default function KontenHRD({ pengguna }: KontenHRDProps) {
        </div>
        <h3 className="font-bold text-[#2a3547] mb-2 uppercase tracking-tight">Buat Lowongan</h3>
        <p className="text-[#5a6a85] text-xs mb-6">Tambah kebutuhan talent baru sesuai departemen.</p>
-       <button className="w-full py-2 bg-[#fccf54] text-[#2a3547] rounded-[7px] text-xs font-bold shadow-sm hover:opacity-90 hover:cursor-pointer transition-all">Mulai Sekarang</button>
+       <Link href="/dashboard/vacancies/create" className="block w-full py-2 bg-[#fccf54] text-[#2a3547] rounded-[7px] text-xs font-bold shadow-sm hover:opacity-90 hover:cursor-pointer transition-all">Mulai Sekarang</Link>
       </div>
 
       <div className="bg-[#2a3547] rounded-[7px] p-6 text-white text-center flex flex-col items-center">
        <ClipboardCheck size={40} className="text-[#fccf54] mb-4" />
        <h3 className="font-bold mb-1">Cek Ranking SAW</h3>
        <p className="text-[11px] text-gray-400 mb-6">Lihat urutan pelamar berbasis kriteria cerdas.</p>
-       <button className="w-full py-2 bg-transparent border border-[#fccf54] text-[#fccf54] rounded-[7px] text-xs font-bold hover:bg-[#fccf54] hover:text-[#2a3547] transition-all">Review Ranking</button>
+       <Link href="/dashboard/scoring" className="block w-full py-2 bg-transparent border border-[#fccf54] text-[#fccf54] rounded-[7px] text-xs font-bold hover:bg-[#fccf54] hover:text-[#2a3547] transition-all">Review Ranking</Link>
       </div>
      </div>
     </div>
