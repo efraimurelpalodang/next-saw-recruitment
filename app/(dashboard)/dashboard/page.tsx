@@ -1,10 +1,6 @@
 import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
-import KontenHRD from "@/components/dashboard/KontenHRD";
 import KontenPelamar from "@/components/dashboard/KontenPelamar";
-import KontenManajer from "@/components/dashboard/KontenManajer";
-import KontenAdmin from "@/components/dashboard/KontenAdmin";
-import DashboardLayout from "@/components/dashboard/DashboardLayout";
 import prisma from "@/lib/prisma";
 
 export default async function DashboardPage() {
@@ -46,28 +42,31 @@ export default async function DashboardPage() {
     return <KontenPelamar pengguna={dataPelamar} />;
   }
 
-  // Management dashboards use the new Adon-inspired Layout
+  // Management dashboards (Placeholders for rebuild)
   if (roleAuth === "admin") {
     return (
-      <DashboardLayout user={pengguna} title="System Dashboard">
-        <KontenAdmin pengguna={pengguna} />
-      </DashboardLayout>
+      <div className="animate-in">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
+        <p className="text-gray-500 mt-2 text-sm">Ini halaman Dashboard Admin. Konten sedang dalam proses pembangunan ulang.</p>
+      </div>
     );
   }
 
   if (roleAuth === "hrd") {
     return (
-      <DashboardLayout user={pengguna} title="Recruitment Overview">
-        <KontenHRD pengguna={pengguna} />
-      </DashboardLayout>
+      <div className="animate-in">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard HRD</h1>
+        <p className="text-gray-500 mt-2 text-sm">Ini halaman Dashboard. Konten sedang dalam proses pembangunan ulang.</p>
+      </div>
     );
   }
 
   if (roleAuth === "manajer") {
     return (
-      <DashboardLayout user={pengguna} title="Managerial Overview">
-        <KontenManajer pengguna={pengguna} />
-      </DashboardLayout>
+      <div className="animate-in">
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard Manajer</h1>
+        <p className="text-gray-500 mt-2 text-sm">Ini halaman Dashboard Manajer. Konten sedang dalam proses pembangunan ulang.</p>
+      </div>
     );
   }
 

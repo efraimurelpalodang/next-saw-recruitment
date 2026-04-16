@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import prisma from "@/lib/prisma";
 import PelamarLayout from "@/components/dashboard/pelamar/PelamarLayout";
+import StaffLayout from "@/components/dashboard/StaffLayout";
 
 export default async function DashboardParentLayout({
   children,
@@ -14,10 +15,13 @@ export default async function DashboardParentLayout({
     redirect("/login");
   }
 
-  // Fetch user role
+  // Fetch user role and profile
   const pengguna = await prisma.pengguna.findUnique({
     where: { id_pengguna: session.id_pengguna },
-    include: { peran: true },
+    include: { 
+      peran: true,
+      profil: true 
+    },
   });
 
   if (!pengguna || !pengguna.status_aktif) {
@@ -35,5 +39,10 @@ export default async function DashboardParentLayout({
     );
   }
   
-  return <>{children}</>;
+  // For HRD, Admin, and Manager, use the StaffLayout
+  return (
+    <StaffLayout user={pengguna}>
+      {children}
+    </StaffLayout>
+  );
 }
