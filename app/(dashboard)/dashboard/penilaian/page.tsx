@@ -1,10 +1,25 @@
 import React from "react";
+import AssessmentDashboard from "@/components/dashboard/hrd/AssessmentDashboard";
+import { getLowonganWithStats } from "@/app/actions/hrd/assessment";
 
-export default function PenilaianPage() {
+export const metadata = {
+  title: "Penilaian Pelamar | SAW Recruitment",
+};
+
+export default async function PenilaianPage() {
+  const result = await getLowonganWithStats();
+
+  if (result.error) {
+    return (
+      <div className="p-8 bg-red-50 border border-red-100 rounded-2xl text-red-600 font-bold">
+        Error: {result.error}
+      </div>
+    );
+  }
+
   return (
-    <div className="animate-in">
-      <h1 className="text-2xl font-bold text-gray-800">Penilaian SAW</h1>
-      <p className="text-gray-500 mt-2 text-sm">Ini halaman Penilaian. Konten sedang dalam proses pembangunan ulang.</p>
+    <div className="p-4 md:p-8">
+      <AssessmentDashboard initialLowongan={result.data || []} />
     </div>
   );
 }

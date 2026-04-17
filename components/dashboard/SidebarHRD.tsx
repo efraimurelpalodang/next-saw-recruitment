@@ -14,6 +14,7 @@ import {
   Settings, 
   LogOut 
 } from "lucide-react";
+import { logoutAction } from "@/app/actions/authActions";
 
 const menuItems = [
   { group: "MENU UTAMA", items: [
@@ -77,15 +78,15 @@ export default function SidebarHRD() {
 
       {/* Footer / Logout */}
       <div className="p-6 border-t border-gray-100">
-        <button 
-          className="flex items-center gap-3 px-3 py-2.5 w-full rounded-md text-sm font-semibold text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all duration-200"
-          onClick={() => {
-            window.location.href = "/api/auth/signout";
-          }}
-        >
-          <LogOut size={18} />
-          Logout
-        </button>
+        <form action={logoutAction}>
+          <button 
+            type="submit"
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-md text-sm font-semibold text-gray-500 hover:bg-red-50 hover:text-red-500 transition-all duration-200"
+          >
+            <LogOut size={18} />
+            Logout
+          </button>
+        </form>
       </div>
     </aside>
   );

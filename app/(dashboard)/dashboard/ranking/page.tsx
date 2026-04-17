@@ -1,10 +1,26 @@
 import React from "react";
+import RankingDashboard from "@/components/dashboard/hrd/RankingDashboard";
+import { getLowonganForRanking } from "@/app/actions/hrd/ranking";
 
-export default function RankingPage() {
+export const metadata = {
+  title: "Ranking & Keputusan | SAW Recruitment",
+};
+
+export default async function RankingPage() {
+  const result = await getLowonganForRanking();
+
+  if (result.error) {
+    return (
+      <div className="p-8 bg-red-50 border border-red-100 rounded-[32px] text-red-600 font-bold flex items-center gap-3">
+        <div className="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">!</div>
+        Error: {result.error}
+      </div>
+    );
+  }
+
   return (
-    <div className="animate-in">
-      <h1 className="text-2xl font-bold text-gray-800">Ranking Seleksi</h1>
-      <p className="text-gray-500 mt-2 text-sm">Ini halaman Ranking. Konten sedang dalam proses pembangunan ulang.</p>
+    <div className="p-4 md:p-8">
+      <RankingDashboard initialLowongan={result.data || []} />
     </div>
   );
 }

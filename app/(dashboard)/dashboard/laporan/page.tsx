@@ -1,10 +1,25 @@
 import React from "react";
+import ReportDashboard from "@/components/dashboard/hrd/ReportDashboard";
+import { getLowonganForReport } from "@/app/actions/hrd/report";
 
-export default function LaporanPage() {
+export const metadata = {
+  title: "Laporan Seleksi | SAW Recruitment",
+};
+
+export default async function LaporanPage() {
+  const result = await getLowonganForReport();
+
+  if (result.error) {
+    return (
+      <div className="p-8 bg-red-50 border border-red-100 rounded-[32px] text-red-600 font-bold flex items-center gap-3">
+        Error: {result.error}
+      </div>
+    );
+  }
+
   return (
-    <div className="animate-in">
-      <h1 className="text-2xl font-bold text-gray-800">Laporan Rekrutmen</h1>
-      <p className="text-gray-500 mt-2 text-sm">Ini halaman Laporan. Konten sedang dalam proses pembangunan ulang.</p>
+    <div className="p-4 md:p-10 max-w-[1600px] mx-auto">
+      <ReportDashboard initialLowongan={result.data || []} />
     </div>
   );
 }

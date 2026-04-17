@@ -1,10 +1,25 @@
 import React from "react";
+import DecisionDashboard from "@/components/dashboard/hrd/DecisionDashboard";
+import { getLowonganSummary } from "@/app/actions/hrd/decision_summary";
 
-export default function KeputusanPage() {
+export const metadata = {
+  title: "Rekap Keputusan | SAW Recruitment",
+};
+
+export default async function KeputusanPage() {
+  const result = await getLowonganSummary();
+
+  if (result.error) {
+    return (
+      <div className="p-8 bg-red-50 border border-red-100 rounded-[32px] text-red-600 font-bold flex items-center gap-3">
+        Error: {result.error}
+      </div>
+    );
+  }
+
   return (
-    <div className="animate-in">
-      <h1 className="text-2xl font-bold text-gray-800">Keputusan Rekrutmen</h1>
-      <p className="text-gray-500 mt-2 text-sm">Ini halaman Keputusan. Konten sedang dalam proses pembangunan ulang.</p>
+    <div className="p-4 md:p-8">
+      <DecisionDashboard initialLowongan={result.data || []} />
     </div>
   );
 }
