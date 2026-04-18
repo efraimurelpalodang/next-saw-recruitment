@@ -42,7 +42,7 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
               <nav className="hidden md:flex items-center gap-1 ml-4">
                 <Link
                   href="/#careers"
-                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:text-[#efc03f] transition-colors"
+                  className="px-4 py-2 text-sm text-gray-500 hover:text-[#efc03f] transition-colors"
                 >
                   Info Peluang Karir
                 </Link>
@@ -52,8 +52,8 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`px-4 py-2 text-sm font-bold rounded-lg transition-all relative ${isActive
-                        ? 'text-gray-900 bg-gray-50'
+                      className={`px-4 py-2 text-sm rounded-lg transition-all relative ${isActive
+                        ? 'text-gray-900 bg-gray-50 font-bold'
                         : 'text-gray-400 hover:text-gray-600 hover:bg-gray-50/50'
                         }`}
                     >
@@ -70,8 +70,8 @@ export default function PelamarLayout({ children, user }: PelamarLayoutProps) {
             {/* User Profile & Logout */}
             <div className="flex items-center gap-4">
               <div className="hidden sm:flex flex-col items-end mr-2">
-                <p className="text-sm font-bold text-gray-900">{user.nama_lengkap}</p>
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PELAMAR</p>
+                <p className="text-sm font-semibold text-gray-900">{user.nama_lengkap}</p>
+                <p className="text-[10px] text-gray-400 uppercase tracking-wider">PELAMAR</p>
               </div>
               <form action={logoutAction}>
                 <button

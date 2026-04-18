@@ -17,6 +17,7 @@ export async function getApplicantsByLowongan(lowonganId: string) {
             nama_lengkap: true,
             email: true,
             nomor_telepon: true,
+            profil: true,
           }
         },
         penilaian: {

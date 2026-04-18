@@ -117,13 +117,19 @@ export default async function PelamarPage({ params }: { params: Promise<{ id_low
                   return (
                     <tr key={item.id_lamaran} className="hover:bg-gray-50/50 transition-colors group">
                       <td className="px-8 py-6">
-                        <div className="flex flex-col gap-1">
-                          <p className="text-sm font-black text-gray-900 group-hover:text-[#3c50e0] transition-colors">
-                            {item.pengguna.nama_lengkap}
-                          </p>
-                          <p className="text-[10px] text-gray-400 font-medium">
-                            {item.pengguna.email}
-                          </p>
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#3c50e0] to-[#5b6ee0] flex items-center justify-center text-white font-bold text-sm shadow-sm ring-2 ring-white flex-shrink-0">
+                            {item.pengguna.nama_lengkap.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex flex-col overflow-hidden">
+                            <p className="text-sm font-black text-gray-900 group-hover:text-[#3c50e0] transition-colors truncate">
+                              {item.pengguna.nama_lengkap}
+                            </p>
+                            <p className="text-[11px] text-gray-500 font-medium truncate mt-0.5">
+                              {/* @ts-ignore - profil property added correctly in the action */}
+                              {item.pengguna.profil?.nama_institusi || item.pengguna.email}
+                            </p>
+                          </div>
                         </div>
                       </td>
                       <td className="px-8 py-6">
