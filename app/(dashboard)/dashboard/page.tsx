@@ -31,11 +31,11 @@ export default async function DashboardPage() {
         lamaran: {
           include: {
             lowongan: {
-              include: { jenis_pekerjaan: true }
+              include: { jenis_pekerjaan: true },
             },
           },
           orderBy: { tanggal_lamar: 'desc' },
-          take: 5, // summary saja, rekap lengkap ada di /dashboard/lamaran
+          // summary saja, rekap lengkap ada di /dashboard/lamaran
         }
       },
     });

@@ -23,7 +23,7 @@ export default function RootLayout({
       className={`${plusJakartaSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="font-plus min-h-full flex flex-col">{children}</body>
+      <body className="font-plus min-h-full flex flex-col" suppressHydrationWarning>{children}</body>
     </html>
   );
 }
