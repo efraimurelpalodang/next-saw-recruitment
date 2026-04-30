@@ -90,7 +90,7 @@ const Navbar = ({ session }: NavbarProps) => {
                     <p className="text-xs text-gray-400 font-medium">Halaman Saya</p>
                   </div>
                   <Link 
-                    href="/dashboard"
+                    href="/applicant/dashboard"
                     className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 hover:text-[#efc03f] transition-colors"
                   >
                     <LayoutDashboard size={18} />
@@ -127,7 +127,7 @@ const Navbar = ({ session }: NavbarProps) => {
         {/* Mobile Toggle */}
         <div className="md:hidden flex items-center gap-4">
           {session && (
-            <Link href="/dashboard" className="w-9 h-9 rounded-full bg-[#fccf54] flex items-center justify-center text-gray-900 text-xs font-bold">
+            <Link href="/applicant/dashboard" className="w-9 h-9 rounded-full bg-[#fccf54] flex items-center justify-center text-gray-900 text-xs font-bold">
                {session.nama_lengkap?.charAt(0).toUpperCase()}
             </Link>
           )}
@@ -164,7 +164,7 @@ const Navbar = ({ session }: NavbarProps) => {
           {session ? (
             <>
               <Link
-                href="/dashboard"
+                href="/applicant/dashboard"
                 className="w-48 py-4 bg-gray-900 text-white text-center rounded-full font-bold text-lg shadow-xl"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
